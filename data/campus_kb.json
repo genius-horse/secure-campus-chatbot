@@ -1,0 +1,66 @@
+[
+  {
+    "id": "public-library-hours",
+    "title": "Library Opening Hours",
+    "min_role": "public",
+    "sensitivity": "public",
+    "keywords": ["library", "hours", "图书馆", "开放", "关门", "闭馆"],
+    "content": "The campus library opens from 08:00 to 22:30 on weekdays and from 09:00 to 21:00 on weekends. During exam weeks, the reading area may extend service until 23:30."
+  },
+  {
+    "id": "public-password-policy",
+    "title": "Campus Account Password Policy",
+    "min_role": "public",
+    "sensitivity": "public",
+    "keywords": ["password", "account", "密码", "账号", "登录", "安全"],
+    "content": "Campus accounts should use at least 12 characters, avoid repeated passwords, and enable two-factor authentication when available. The IT office never asks users to send passwords by email or chat."
+  },
+  {
+    "id": "student-security-lab",
+    "title": "Computer Security Lab Schedule",
+    "min_role": "student",
+    "sensitivity": "internal",
+    "keywords": ["security", "lab", "实验", "安全课程", "安排", "schedule"],
+    "content": "Students enrolled in Computer and Data Security can access the security lab every Tuesday and Thursday from 14:00 to 18:00. Lab machines are reset automatically after each session."
+  },
+  {
+    "id": "student-project-deadline",
+    "title": "Security Course Project Deadline",
+    "min_role": "student",
+    "sensitivity": "internal",
+    "keywords": ["project", "deadline", "due", "大作业", "截止", "提交"],
+    "content": "The group project is due on Thursday, 18 June 2026. The expected deliverables include a written report, slides, oral presentation, and a working demonstration system."
+  },
+  {
+    "id": "teacher-grading-rubric",
+    "title": "Teacher Grading Rubric",
+    "min_role": "teacher",
+    "sensitivity": "restricted",
+    "keywords": ["rubric", "grading", "score", "评分", "成绩", "rubric", "assessment"],
+    "content": "Teachers evaluate the project with five categories: literature survey 10%, project description 10%, implementation and demonstration 20%, written report 10%, and oral presentation 10%."
+  },
+  {
+    "id": "teacher-student-progress",
+    "title": "Student Progress Notes",
+    "min_role": "teacher",
+    "sensitivity": "confidential",
+    "keywords": ["progress", "student", "学生", "进度", "反馈", "成绩"],
+    "content": "Progress notes are confidential teaching records. They may include attendance status, private feedback, and preliminary marks. They should not be disclosed to unauthorized students."
+  },
+  {
+    "id": "admin-emergency-contacts",
+    "title": "Emergency Contact Roster",
+    "min_role": "admin",
+    "sensitivity": "private",
+    "keywords": ["phone", "email", "contact", "roster", "手机号", "邮箱", "联系方式", "名单"],
+    "content": "Emergency contact roster: Alice Chen, S20260001, alice.chen@example.edu, +86 13800138000; Bob Li, S20260002, bob.li@example.edu, +86 13900139000. This record contains personal data and is restricted to administrators."
+  },
+  {
+    "id": "admin-security-audit-policy",
+    "title": "Security Audit Policy",
+    "min_role": "admin",
+    "sensitivity": "restricted",
+    "keywords": ["audit", "log", "risk", "审计", "日志", "高风险"],
+    "content": "High-risk requests should be logged with username, role, matched policy, action, and timestamp. Administrators review blocked prompt injection, privacy requests, and repeated unauthorized access attempts."
+  }
+]

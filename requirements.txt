@@ -1,0 +1,2 @@
+# No external dependency is required.
+# Runtime: Python 3.10+
