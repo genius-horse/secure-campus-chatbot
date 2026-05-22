@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from threading import Lock
 
 from users import role_allows
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 KB_PATH = ROOT_DIR / "data" / "campus_kb.json"
+
+_KB_LOCK = Lock()
 
 
 @dataclass(frozen=True)
@@ -30,6 +35,78 @@ class RetrievalHit:
 def load_knowledge(path: Path = KB_PATH) -> list[KnowledgeDoc]:
     raw_docs = json.loads(path.read_text(encoding="utf-8"))
     return [KnowledgeDoc(**item) for item in raw_docs]
+
+
+def _save_knowledge(docs: list[KnowledgeDoc], path: Path = KB_PATH) -> None:
+    with _KB_LOCK:
+        raw = []
+        for doc in docs:
+            raw.append({
+                "id": doc.id,
+                "title": doc.title,
+                "min_role": doc.min_role,
+                "sensitivity": doc.sensitivity,
+                "keywords": doc.keywords,
+                "content": doc.content,
+            })
+        path.write_text(json.dumps(raw, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def add_knowledge(
+    id: str,
+    title: str,
+    min_role: str,
+    sensitivity: str,
+    keywords: list[str],
+    content: str,
+) -> KnowledgeDoc:
+    docs = load_knowledge()
+    if any(d.id == id for d in docs):
+        raise ValueError(f"知识条目 '{id}' 已存在")
+    doc = KnowledgeDoc(
+        id=id,
+        title=title,
+        min_role=min_role,
+        sensitivity=sensitivity,
+        keywords=keywords,
+        content=content,
+    )
+    docs.append(doc)
+    _save_knowledge(docs)
+    return doc
+
+
+def update_knowledge(
+    id: str,
+    title: str | None = None,
+    min_role: str | None = None,
+    sensitivity: str | None = None,
+    keywords: list[str] | None = None,
+    content: str | None = None,
+) -> KnowledgeDoc:
+    docs = load_knowledge()
+    for i, d in enumerate(docs):
+        if d.id == id:
+            updated = KnowledgeDoc(
+                id=id,
+                title=title if title is not None else d.title,
+                min_role=min_role if min_role is not None else d.min_role,
+                sensitivity=sensitivity if sensitivity is not None else d.sensitivity,
+                keywords=keywords if keywords is not None else d.keywords,
+                content=content if content is not None else d.content,
+            )
+            docs[i] = updated
+            _save_knowledge(docs)
+            return updated
+    raise ValueError(f"知识条目 '{id}' 不存在")
+
+
+def delete_knowledge(id: str) -> None:
+    docs = load_knowledge()
+    new_docs = [d for d in docs if d.id != id]
+    if len(new_docs) == len(docs):
+        raise ValueError(f"知识条目 '{id}' 不存在")
+    _save_knowledge(new_docs)
 
 
 def _tokens(text: str) -> set[str]:

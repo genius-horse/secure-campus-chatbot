@@ -75,7 +75,7 @@ class ChatbotPipelineTests(unittest.TestCase):
         result = chatbot.respond(student, "图书馆几点关门？")
         self.assertEqual(result["action"], "allowed")
         self.assertEqual(result["generation_mode"], "local")
-        self.assertIn("library", result["answer"].lower())
+        self.assertIn("图书馆", result["answer"])
 
 
 class SecurityEvaluationTests(unittest.TestCase):

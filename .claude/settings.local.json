@@ -3,7 +3,11 @@
     "allow": [
       "Bash(python backend/app.py)",
       "Bash(curl -s http://127.0.0.1:8010/api/config)",
-      "Bash(python -c \"import urllib.request; print\\(urllib.request.urlopen\\('http://127.0.0.1:8010/api/config', timeout=5\\).read\\(\\).decode\\(\\)\\)\")"
+      "Bash(python -c \"import urllib.request; print\\(urllib.request.urlopen\\('http://127.0.0.1:8010/api/config', timeout=5\\).read\\(\\).decode\\(\\)\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python -m unittest discover -s tests -v)",
+      "Bash(curl -s http://127.0.0.1:8010/app.js)",
+      "Bash(python -c \"import urllib.request; urllib.request.urlopen\\('http://127.0.0.1:8010/api/config', timeout=3\\); print\\('Server is running'\\)\")"
     ]
   }
 }

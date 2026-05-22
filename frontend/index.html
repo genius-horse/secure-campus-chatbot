@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>安全校园助手</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=3" />
   </head>
   <body>
     <main class="app-shell">
@@ -16,6 +16,7 @@
             <p>提示注入防御、隐私保护与角色感知检索</p>
             <div id="providerStatus" class="provider-status">回答模式：检查中...</div>
           </div>
+          <button id="themeToggle" class="icon-button" title="切换暗色模式">🌙</button>
         </section>
 
         <section class="panel login-panel">
@@ -63,6 +64,32 @@
           </div>
           <div id="knowledgeList" class="knowledge-list empty">请登录以查看角色可访问的条目</div>
         </section>
+
+        <section class="panel kb-manage-panel" id="kbManagePanel" style="display:none">
+          <div class="panel-header">
+            <h2>知识库管理</h2>
+            <button id="toggleKbForm" class="secondary">+ 新建</button>
+          </div>
+          <div id="kbForm" class="kb-form" style="display:none">
+            <label>ID<input id="kbId" placeholder="英文ID，如 public-news" /></label>
+            <label>标题<input id="kbTitle" placeholder="条目标题" /></label>
+            <div class="kb-row">
+              <label>最低角色
+                <select id="kbMinRole"><option value="public">公开</option><option value="student">学生</option><option value="teacher">教师</option><option value="admin">管理员</option></select>
+              </label>
+              <label>敏感度
+                <select id="kbSensitivity"><option value="public">公开</option><option value="internal">内部</option><option value="restricted">受限</option><option value="confidential">机密</option><option value="private">私密</option></select>
+              </label>
+            </div>
+            <label>关键词（英文逗号分隔）<input id="kbKeywords" placeholder="library, 图书馆, hours" /></label>
+            <label>内容<textarea id="kbContent" rows="3" placeholder="知识条目内容..."></textarea></label>
+            <div class="button-row">
+              <button id="kbSave">保存</button>
+              <button id="kbCancel" class="secondary">取消</button>
+            </div>
+          </div>
+          <div id="kbManageList" class="knowledge-list empty">加载中...</div>
+        </section>
       </aside>
 
       <section class="workspace">
@@ -72,7 +99,10 @@
               <h2>安全意识聊天</h2>
               <p id="currentUser">使用演示账户开始</p>
             </div>
-            <div id="riskBadge" class="risk-badge none">无风险</div>
+            <div class="chat-header-actions">
+              <button id="clearHistory" class="secondary" title="清除对话历史">清除历史</button>
+              <div id="riskBadge" class="risk-badge none">无风险</div>
+            </div>
           </header>
 
           <div id="messages" class="messages">
@@ -99,6 +129,12 @@
               <button id="refreshAudit" class="secondary">刷新</button>
             </div>
           </div>
+          <div class="audit-filters">
+            <select id="filterRisk"><option value="">全部风险</option><option value="high">高风险</option><option value="medium">中风险</option><option value="low">低风险</option><option value="none">无风险</option></select>
+            <select id="filterAction"><option value="">全部操作</option><option value="allowed">已允许</option><option value="blocked">已阻止</option><option value="partially_allowed">部分允许</option></select>
+            <select id="filterRole"><option value="">全部角色</option><option value="student">学生</option><option value="teacher">教师</option><option value="admin">管理员</option></select>
+            <input id="filterSearch" placeholder="搜索消息内容..." />
+          </div>
           <div id="auditSummary" class="audit-summary">
             <span>总计：0</span>
             <span>已阻止：0</span>
@@ -111,6 +147,6 @@
       </section>
     </main>
     <div id="toastContainer" class="toast-container"></div>
-    <script src="/app.js"></script>
+    <script src="/app.js?v=3"></script>
   </body>
 </html>

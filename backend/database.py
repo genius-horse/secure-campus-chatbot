@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import sqlite3
 from collections import Counter
@@ -84,21 +86,61 @@ def append_audit_log(
             return int(cursor.lastrowid)
 
 
-def list_audit_logs(limit: int = 100, path: Path = DB_PATH) -> list[dict]:
+def list_audit_logs(
+    limit: int = 100,
+    path: Path = DB_PATH,
+    *,
+    risk: str | None = None,
+    action: str | None = None,
+    role: str | None = None,
+    username: str | None = None,
+    search: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+) -> list[dict]:
     init_db(path)
     safe_limit = max(1, min(int(limit), 500))
+
+    where_clauses = []
+    params: list[str] = []
+
+    if risk:
+        where_clauses.append("risk = ?")
+        params.append(risk)
+    if action:
+        where_clauses.append("action = ?")
+        params.append(action)
+    if role:
+        where_clauses.append("role = ?")
+        params.append(role)
+    if username:
+        where_clauses.append("username = ?")
+        params.append(username)
+    if search:
+        where_clauses.append("(message LIKE ? OR response LIKE ?)")
+        like = f"%{search}%"
+        params.extend([like, like])
+    if date_from:
+        where_clauses.append("created_at >= ?")
+        params.append(date_from)
+    if date_to:
+        where_clauses.append("created_at <= ?")
+        params.append(date_to)
+
+    where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+    query = f"""
+        SELECT id, created_at, username, role, action, risk, message,
+               response, policy_hits, citations
+        FROM audit_log
+        {where_sql}
+        ORDER BY id DESC
+        LIMIT ?
+    """
+    params.append(str(safe_limit))
+
     with sqlite3.connect(path) as conn:
         conn.row_factory = sqlite3.Row
-        rows = conn.execute(
-            """
-            SELECT id, created_at, username, role, action, risk, message,
-                   response, policy_hits, citations
-            FROM audit_log
-            ORDER BY id DESC
-            LIMIT ?
-            """,
-            (safe_limit,),
-        ).fetchall()
+        rows = conn.execute(query, params).fetchall()
 
     logs = []
     for row in rows:

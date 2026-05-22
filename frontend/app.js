@@ -1,6 +1,8 @@
 const state = {
   token: localStorage.getItem("secureCampusToken") || "",
   user: JSON.parse(localStorage.getItem("secureCampusUser") || "null"),
+  theme: localStorage.getItem("secureCampusTheme") || "light",
+  editingKbId: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -99,11 +101,31 @@ function renderSession() {
     status.textContent = "已退出";
     status.className = "status-pill muted";
     currentUser.textContent = "使用演示账户开始";
+    $("#kbManagePanel").style.display = "none";
     return;
   }
   status.textContent = roleLabel(state.user.role);
   status.className = "status-pill signed-in";
   currentUser.textContent = `${state.user.display_name} · 已登录，角色：${roleLabel(state.user.role)}`;
+  if (state.user.role === "admin") {
+    $("#kbManagePanel").style.display = "";
+    refreshKbManageList().catch(() => {});
+  } else {
+    $("#kbManagePanel").style.display = "none";
+  }
+}
+
+/* ── Theme ───────────────────────────────────── */
+
+function applyTheme() {
+  document.documentElement.setAttribute("data-theme", state.theme);
+  $("#themeToggle").textContent = state.theme === "dark" ? "☀️" : "🌙";
+}
+
+function toggleTheme() {
+  state.theme = state.theme === "dark" ? "light" : "dark";
+  localStorage.setItem("secureCampusTheme", state.theme);
+  applyTheme();
 }
 
 function formatTime() {
@@ -333,15 +355,8 @@ async function refreshKnowledge() {
     data.items.forEach((item) => {
       const node = document.createElement("div");
       node.className = "knowledge-item";
-      const sensColors = {
-        public: "background:#ecfdf5;color:#059669",
-        internal: "background:#eff6ff;color:#2563eb",
-        restricted: "background:#fef3c7;color:#b45309",
-        confidential: "background:#fef2f2;color:#dc2626",
-        private: "background:#fdf4ff;color:#a21caf",
-      };
-      const sensStyle = sensColors[item.sensitivity] || "";
-      node.innerHTML = `<strong>${escapeHtml(item.title)}</strong><span style="${sensStyle}">${sensitivityLabel(item.sensitivity)}</span>`;
+      const sensClass = `sens-${item.sensitivity || "public"}`;
+      node.innerHTML = `<strong>${escapeHtml(item.title)}</strong><span class="sens-badge ${sensClass}">${sensitivityLabel(item.sensitivity)}</span>`;
       list.appendChild(node);
     });
   } catch (error) {
@@ -361,7 +376,17 @@ async function refreshAudit() {
     return;
   }
   try {
-    const data = await api("/api/audit?limit=50");
+    const params = new URLSearchParams();
+    params.set("limit", "100");
+    const risk = $("#filterRisk").value;
+    const action = $("#filterAction").value;
+    const role = $("#filterRole").value;
+    const search = $("#filterSearch").value.trim();
+    if (risk) params.set("risk", risk);
+    if (action) params.set("action", action);
+    if (role) params.set("role", role);
+    if (search) params.set("search", search);
+    const data = await api(`/api/audit?${params.toString()}`);
     const metrics = await api("/api/audit/metrics");
     $("#auditSummary").innerHTML = `
       <span>总计：${data.summary.total}</span>
@@ -503,6 +528,134 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+/* ── Conversation history ───────────────────── */
+
+async function clearHistory() {
+  if (!state.token) return;
+  try {
+    await api("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ message: "", clear_history: true }),
+    });
+  } catch (error) {
+    // Proceed even if the API fails
+  }
+  // Clear visible messages from UI
+  const messages = $("#messages");
+  messages.innerHTML = "";
+  addMessage("assistant", "对话历史与上下文已清除，可以开始新的对话。");
+  showToast("对话历史已清除", "success", 2000);
+}
+
+/* ── Knowledge base management ───────────────── */
+
+async function refreshKbManageList() {
+  const list = $("#kbManageList");
+  if (!state.token || state.user?.role !== "admin") return;
+  try {
+    const data = await api("/api/knowledge/manage", {
+      method: "POST",
+      body: JSON.stringify({ action: "list" }),
+    });
+    list.className = "knowledge-list";
+    list.innerHTML = "";
+    data.items.forEach((item) => {
+      const node = document.createElement("div");
+      node.className = "knowledge-item kb-manage-item";
+      node.innerHTML = `
+        <strong>${escapeHtml(item.title)} <span style="color:var(--muted);font-weight:400">(${item.id})</span></strong>
+        <span>${sensitivityLabel(item.sensitivity)} · 最低角色：${roleLabel(item.min_role)}</span>
+        <div class="kb-item-actions">
+          <button class="secondary kb-edit-btn" data-id="${item.id}">编辑</button>
+          <button class="secondary kb-delete-btn" data-id="${item.id}">删除</button>
+        </div>
+      `;
+      list.appendChild(node);
+    });
+    // Bind edit/delete buttons
+    list.querySelectorAll(".kb-edit-btn").forEach((btn) => {
+      btn.addEventListener("click", () => editKbItem(btn.dataset.id, data.items));
+    });
+    list.querySelectorAll(".kb-delete-btn").forEach((btn) => {
+      btn.addEventListener("click", () => deleteKbItem(btn.dataset.id));
+    });
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+function editKbItem(id, items) {
+  const item = items.find((i) => i.id === id);
+  if (!item) return;
+  state.editingKbId = id;
+  $("#kbId").value = item.id;
+  $("#kbId").disabled = true;
+  $("#kbTitle").value = item.title;
+  $("#kbMinRole").value = item.min_role;
+  $("#kbSensitivity").value = item.sensitivity;
+  $("#kbKeywords").value = (item.keywords || []).join(", ");
+  $("#kbContent").value = item.content;
+  $("#kbSave").textContent = "更新";
+  $("#kbForm").style.display = "";
+}
+
+async function saveKbItem() {
+  const id = $("#kbId").value.trim();
+  const title = $("#kbTitle").value.trim();
+  const minRole = $("#kbMinRole").value;
+  const sensitivity = $("#kbSensitivity").value;
+  const keywords = $("#kbKeywords").value.split(",").map((k) => k.trim()).filter(Boolean);
+  const content = $("#kbContent").value.trim();
+
+  if (!id || !title || !content) {
+    showToast("ID、标题和内容为必填项", "warning");
+    return;
+  }
+
+  const action = state.editingKbId ? "update" : "add";
+  try {
+    await api("/api/knowledge/manage", {
+      method: "POST",
+      body: JSON.stringify({ action, id, title, min_role: minRole, sensitivity, keywords, content }),
+    });
+    showToast(state.editingKbId ? "知识条目已更新" : "知识条目已添加", "success", 3000);
+    resetKbForm();
+    await refreshKbManageList();
+    await refreshKnowledge();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+async function deleteKbItem(id) {
+  if (!confirm(`确定要删除知识条目 "${id}" 吗？此操作不可恢复。`)) return;
+  try {
+    await api("/api/knowledge/manage", {
+      method: "POST",
+      body: JSON.stringify({ action: "delete", id }),
+    });
+    showToast("知识条目已删除", "success", 3000);
+    resetKbForm();
+    await refreshKbManageList();
+    await refreshKnowledge();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+function resetKbForm() {
+  state.editingKbId = null;
+  $("#kbId").value = "";
+  $("#kbId").disabled = false;
+  $("#kbTitle").value = "";
+  $("#kbMinRole").value = "public";
+  $("#kbSensitivity").value = "public";
+  $("#kbKeywords").value = "";
+  $("#kbContent").value = "";
+  $("#kbSave").textContent = "保存";
+  $("#kbForm").style.display = "none";
+}
+
 /* ── Event bindings ─────────────────────────── */
 
 $("#loginButton").addEventListener("click", () => {
@@ -562,9 +715,35 @@ $("#refreshKnowledge").addEventListener("click", () => refreshKnowledge().catch(
 $("#refreshAudit").addEventListener("click", () => refreshAudit().catch(() => {}));
 $("#runSecurityTests").addEventListener("click", () => runSecurityTests().catch(() => {}));
 $("#exportAudit").addEventListener("click", () => exportAudit().catch(() => {}));
+$("#clearHistory").addEventListener("click", () => clearHistory().catch(() => {}));
+$("#themeToggle").addEventListener("click", () => toggleTheme());
+
+// Audit filters
+$("#filterRisk").addEventListener("change", () => refreshAudit().catch(() => {}));
+$("#filterAction").addEventListener("change", () => refreshAudit().catch(() => {}));
+$("#filterRole").addEventListener("change", () => refreshAudit().catch(() => {}));
+$("#filterSearch").addEventListener("input", debounce(() => refreshAudit().catch(() => {}), 400));
+
+// Knowledge base management
+$("#toggleKbForm").addEventListener("click", () => {
+  const form = $("#kbForm");
+  form.style.display = form.style.display === "none" ? "" : "none";
+  if (form.style.display === "none") resetKbForm();
+});
+$("#kbSave").addEventListener("click", () => saveKbItem().catch(() => {}));
+$("#kbCancel").addEventListener("click", () => resetKbForm());
+
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
 
 /* ── Init ───────────────────────────────────── */
 
+applyTheme();
 renderSession();
 refreshProviderStatus().catch(() => {});
 if (state.token) {

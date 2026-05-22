@@ -78,7 +78,12 @@ def _context_blocks(allowed_hits: list[RetrievalHit]) -> list[dict]:
     return blocks
 
 
-def _answer_with_optional_llm(user: User, message: str, allowed_hits: list[RetrievalHit]) -> tuple[str, str, str | None]:
+def _answer_with_optional_llm(
+    user: User,
+    message: str,
+    allowed_hits: list[RetrievalHit],
+    history: list[dict] | None = None,
+) -> tuple[str, str, str | None]:
     local_answer = _build_answer(message, allowed_hits)
     if not allowed_hits:
         return local_answer, "local", None
@@ -88,6 +93,7 @@ def _answer_with_optional_llm(user: User, message: str, allowed_hits: list[Retri
             user_role=user.role,
             question=message,
             context_blocks=_context_blocks(allowed_hits),
+            history=history,
         )
     except LLMProviderError as exc:
         return local_answer, "local_fallback", str(exc)
@@ -98,7 +104,7 @@ def _answer_with_optional_llm(user: User, message: str, allowed_hits: list[Retri
     return llm_answer, "llm_api", None
 
 
-def respond(user: User, message: str) -> dict:
+def respond(user: User, message: str, history: list[dict] | None = None) -> dict:
     normalized = message.strip()
     if not normalized:
         return {
@@ -110,12 +116,23 @@ def respond(user: User, message: str) -> dict:
             "audit_id": None,
             "generation_mode": "local",
             "llm_error": None,
+            "history_message_count": 0,
         }
 
     injection_hits = detect_prompt_injection(normalized)
     sensitive_hits = detect_sensitive_request(normalized)
     input_pii_hits = detect_pii(normalized)
     policy_hits = injection_hits + sensitive_hits + input_pii_hits
+
+    # Multi-turn threat detection: check if user is probing across messages
+    if history:
+        prev_user_msgs = [h["content"] for h in history if h.get("role") == "user"]
+        if len(prev_user_msgs) >= 2:
+            combined_recent = " | ".join(prev_user_msgs[-3:] + [normalized])
+            cumulative_injection = detect_prompt_injection(combined_recent)
+            for hit in cumulative_injection:
+                if hit.rule_id not in {h.rule_id for h in policy_hits}:
+                    policy_hits.append(hit)
 
     allowed_hits, denied_hits = search(normalized, user.role)
     citations = [_citation(hit) for hit in allowed_hits]
@@ -136,7 +153,9 @@ def respond(user: User, message: str) -> dict:
         action = "blocked"
         answer = _blocked_response("最佳匹配的记录需要更高的角色权限")
     else:
-        answer, generation_mode, llm_error = _answer_with_optional_llm(user, normalized, allowed_hits)
+        answer, generation_mode, llm_error = _answer_with_optional_llm(
+            user, normalized, allowed_hits, history
+        )
         if denied_hits:
             action = "partially_allowed"
             answer += (
@@ -170,4 +189,5 @@ def respond(user: User, message: str) -> dict:
         "audit_id": audit_id,
         "generation_mode": generation_mode,
         "llm_error": llm_error,
+        "history_message_count": len(history) if history else 0,
     }

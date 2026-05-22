@@ -16,7 +16,13 @@ from config import load_env_file
 from database import audit_metrics, audit_summary, export_audit_csv, init_db, list_audit_logs
 from evaluation import run_security_evaluation
 from llm_provider import provider_status
-from retrieval import visible_knowledge
+from retrieval import (
+    add_knowledge,
+    delete_knowledge,
+    load_knowledge,
+    update_knowledge,
+    visible_knowledge,
+)
 from users import User, authenticate, public_profile
 
 
@@ -32,9 +38,12 @@ MAX_LOGIN_ATTEMPTS = 10
 LOGIN_WINDOW_SECONDS = 60
 
 SESSIONS: dict[str, tuple[User, float]] = {}
+CONVERSATIONS: dict[str, list[dict]] = {}
+MAX_HISTORY_LENGTH = 20
 _login_attempts: list[float] = []
 _rate_lock = threading.Lock()
 _session_lock = threading.Lock()
+_conv_lock = threading.Lock()
 
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -68,7 +77,10 @@ def _cleanup_sessions(now: float | None = None) -> int:
         expired = [t for t, (_, ts) in SESSIONS.items() if now - ts > SESSION_TTL_SECONDS]
         for t in expired:
             SESSIONS.pop(t, None)
-        return len(expired)
+    with _conv_lock:
+        for t in expired:
+            CONVERSATIONS.pop(t, None)
+    return len(expired)
 
 
 def _check_rate_limit() -> bool:
@@ -116,7 +128,10 @@ class SecureChatHandler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", CONTENT_TYPES.get(suffix, "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
-        if suffix in {".html", ".css", ".js"}:
+        # Short cache for development, long cache for production
+        if os.environ.get("APP_ENV") == "development":
+            self.send_header("Cache-Control", "no-cache")
+        elif suffix in {".html", ".css", ".js"}:
             self.send_header("Cache-Control", "public, max-age=3600")
         else:
             self.send_header("Cache-Control", "public, max-age=86400")
@@ -210,7 +225,15 @@ class SecureChatHandler(BaseHTTPRequestHandler):
                 return
             query = parse_qs(parsed.query)
             limit = int(query.get("limit", ["100"])[0])
-            self._send_json({"summary": audit_summary(), "logs": list_audit_logs(limit=limit)})
+            filters = {}
+            for key in ("risk", "action", "role", "username", "search", "date_from", "date_to"):
+                val = query.get(key, [None])[0]
+                if val:
+                    filters[key] = val
+            self._send_json({
+                "summary": audit_summary(),
+                "logs": list_audit_logs(limit=limit, **filters),
+            })
             return
 
         if path == "/api/audit/metrics":
@@ -293,19 +316,58 @@ class SecureChatHandler(BaseHTTPRequestHandler):
             user = self._require_user()
             if not user:
                 return
+            token = self._session_token()
             try:
                 payload = self._read_json()
             except json.JSONDecodeError:
                 self._send_json({"error": "无效的JSON格式"}, HTTPStatus.BAD_REQUEST)
                 return
             message = str(payload.get("message", ""))
+            clear_history = bool(payload.get("clear_history", False))
+
+            # Handle pure clear-history request (no message)
+            if clear_history and not message.strip():
+                with _conv_lock:
+                    CONVERSATIONS.pop(token, None)
+                self._send_json({
+                    "action": "allowed",
+                    "risk": "none",
+                    "answer": "",
+                    "policy_hits": [],
+                    "citations": [],
+                    "audit_id": None,
+                    "generation_mode": "local",
+                    "llm_error": None,
+                    "history_message_count": 0,
+                    "history_cleared": True,
+                })
+                return
+
             if len(message) > MAX_MESSAGE_LENGTH:
                 self._send_json(
                     {"error": f"消息过长，最大允许{MAX_MESSAGE_LENGTH}个字符。"},
                     HTTPStatus.BAD_REQUEST,
                 )
                 return
-            self._send_json(respond(user, message))
+
+            # Manage conversation history
+            with _conv_lock:
+                if clear_history and token:
+                    CONVERSATIONS.pop(token, None)
+                history = CONVERSATIONS.get(token, []) if token else []
+
+            result = respond(user, message, history if history else None)
+
+            # Store exchange in history
+            if token and result.get("action") != "blocked":
+                with _conv_lock:
+                    conv = CONVERSATIONS.setdefault(token, [])
+                    conv.append({"role": "user", "content": message})
+                    conv.append({"role": "assistant", "content": result["answer"]})
+                    if len(conv) > MAX_HISTORY_LENGTH * 2:
+                        CONVERSATIONS[token] = conv[-(MAX_HISTORY_LENGTH * 2):]
+
+            self._send_json(result)
             return
 
         if parsed.path == "/api/security-tests":
@@ -316,6 +378,112 @@ class SecureChatHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "需要管理员权限"}, HTTPStatus.FORBIDDEN)
                 return
             self._send_json(run_security_evaluation())
+            return
+
+        if parsed.path == "/api/knowledge/manage":
+            user = self._require_user()
+            if not user:
+                return
+            if user.role != "admin":
+                self._send_json({"error": "需要管理员权限"}, HTTPStatus.FORBIDDEN)
+                return
+            try:
+                payload = self._read_json()
+            except json.JSONDecodeError:
+                self._send_json({"error": "无效的JSON格式"}, HTTPStatus.BAD_REQUEST)
+                return
+
+            action = str(payload.get("action", "list")).strip().lower()
+
+            if action == "list":
+                docs = load_knowledge()
+                self._send_json({
+                    "items": [
+                        {
+                            "id": d.id,
+                            "title": d.title,
+                            "min_role": d.min_role,
+                            "sensitivity": d.sensitivity,
+                            "keywords": d.keywords,
+                            "content": d.content,
+                        }
+                        for d in docs
+                    ]
+                })
+                return
+
+            if action == "add":
+                try:
+                    doc = add_knowledge(
+                        id=str(payload["id"]).strip(),
+                        title=str(payload["title"]).strip(),
+                        min_role=str(payload["min_role"]).strip(),
+                        sensitivity=str(payload["sensitivity"]).strip(),
+                        keywords=list(payload.get("keywords", [])),
+                        content=str(payload["content"]).strip(),
+                    )
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, HTTPStatus.CONFLICT)
+                    return
+                except KeyError as exc:
+                    self._send_json({"error": f"缺少字段：{exc}"}, HTTPStatus.BAD_REQUEST)
+                    return
+                self._send_json({
+                    "ok": True,
+                    "item": {
+                        "id": doc.id,
+                        "title": doc.title,
+                        "min_role": doc.min_role,
+                        "sensitivity": doc.sensitivity,
+                        "keywords": doc.keywords,
+                        "content": doc.content,
+                    }
+                })
+                return
+
+            if action == "update":
+                kb_id = str(payload.get("id", "")).strip()
+                if not kb_id:
+                    self._send_json({"error": "缺少id字段"}, HTTPStatus.BAD_REQUEST)
+                    return
+                updates = {}
+                for field in ("title", "min_role", "sensitivity", "content"):
+                    if field in payload:
+                        updates[field] = str(payload[field]).strip()
+                if "keywords" in payload:
+                    updates["keywords"] = list(payload["keywords"])
+                try:
+                    doc = update_knowledge(kb_id, **updates)
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, HTTPStatus.NOT_FOUND)
+                    return
+                self._send_json({
+                    "ok": True,
+                    "item": {
+                        "id": doc.id,
+                        "title": doc.title,
+                        "min_role": doc.min_role,
+                        "sensitivity": doc.sensitivity,
+                        "keywords": doc.keywords,
+                        "content": doc.content,
+                    }
+                })
+                return
+
+            if action == "delete":
+                kb_id = str(payload.get("id", "")).strip()
+                if not kb_id:
+                    self._send_json({"error": "缺少id字段"}, HTTPStatus.BAD_REQUEST)
+                    return
+                try:
+                    delete_knowledge(kb_id)
+                except ValueError as exc:
+                    self._send_json({"error": str(exc)}, HTTPStatus.NOT_FOUND)
+                    return
+                self._send_json({"ok": True})
+                return
+
+            self._send_json({"error": f"不支持的操作：{action}"}, HTTPStatus.BAD_REQUEST)
             return
 
         self._send_json({"error": "未找到"}, HTTPStatus.NOT_FOUND)

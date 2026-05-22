@@ -65,6 +65,7 @@ def generate_with_llm(
     user_role: str,
     question: str,
     context_blocks: list[dict],
+    history: list[dict] | None = None,
 ) -> str | None:
     settings = get_llm_settings()
     if not settings.configured:
@@ -79,11 +80,19 @@ def generate_with_llm(
                 "如果上下文不足，请说明可用的授权上下文不足以回答该问题。"
             ),
         },
+    ]
+
+    # Include conversation history for multi-turn context
+    if history:
+        for h in history[-10:]:  # Last 10 messages max
+            messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
+
+    messages.append(
         {
             "role": "user",
             "content": _build_prompt(user_role=user_role, question=question, context_blocks=context_blocks),
         },
-    ]
+    )
 
     payload = {
         "model": settings.model,

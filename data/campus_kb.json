@@ -4,7 +4,15 @@
     "title": "图书馆开放时间",
     "min_role": "public",
     "sensitivity": "public",
-    "keywords": ["library", "hours", "图书馆", "开放", "关门", "闭馆", "时间"],
+    "keywords": [
+      "library",
+      "hours",
+      "图书馆",
+      "开放",
+      "关门",
+      "闭馆",
+      "时间"
+    ],
     "content": "校园图书馆工作日开放时间为 08:00 至 22:30，周末开放时间为 09:00 至 21:00。考试周期间，阅览区可能延长服务至 23:30。一楼的24小时自习室凭有效校园卡随时可用。"
   },
   {
@@ -12,7 +20,15 @@
     "title": "校园账户密码策略",
     "min_role": "public",
     "sensitivity": "public",
-    "keywords": ["password", "account", "密码", "账号", "登录", "安全", "authentication"],
+    "keywords": [
+      "password",
+      "account",
+      "密码",
+      "账号",
+      "登录",
+      "安全",
+      "authentication"
+    ],
     "content": "校园账户应使用至少12个字符的密码，避免重复使用密码，并在可用时启用双因素认证。IT部门绝不会通过电子邮件或聊天要求用户发送密码。密码必须每180天更换一次。"
   },
   {
@@ -20,7 +36,17 @@
     "title": "校园地图与建筑指南",
     "min_role": "public",
     "sensitivity": "public",
-    "keywords": ["campus", "map", "building", "校园", "地图", "教学楼", "餐厅", "食堂", "体育馆"],
+    "keywords": [
+      "campus",
+      "map",
+      "building",
+      "校园",
+      "地图",
+      "教学楼",
+      "餐厅",
+      "食堂",
+      "体育馆"
+    ],
     "content": "主校区包括8栋教学楼（A-H楼）、一座中央图书馆、3个食堂、一个带游泳池的综合体育馆、学生活动中心以及行政大楼。F楼设有所有计算机科学与网络安全实验室。"
   },
   {
@@ -28,7 +54,17 @@
     "title": "食堂就餐时间安排",
     "min_role": "public",
     "sensitivity": "public",
-    "keywords": ["dining", "food", "cafeteria", "食堂", "餐厅", "吃饭", "dinner", "lunch", "breakfast"],
+    "keywords": [
+      "dining",
+      "food",
+      "cafeteria",
+      "食堂",
+      "餐厅",
+      "吃饭",
+      "dinner",
+      "lunch",
+      "breakfast"
+    ],
     "content": "校园食堂营业时间如下：早餐 07:00-09:00，午餐 11:30-13:30，晚餐 17:00-19:30。B食堂延长营业至21:00，并提供素食和清真餐选择。所有食堂均接受校园卡或移动支付。"
   },
   {
@@ -36,7 +72,16 @@
     "title": "校园Wi-Fi设置指南",
     "min_role": "public",
     "sensitivity": "public",
-    "keywords": ["wifi", "network", "wireless", "网络", "无线网", "上网", "connect", "SSID"],
+    "keywords": [
+      "wifi",
+      "network",
+      "wireless",
+      "网络",
+      "无线网",
+      "上网",
+      "connect",
+      "SSID"
+    ],
     "content": "校园Wi-Fi的SSID为'CampusNet-Secure'。学生和教职工使用校园用户名和密码通过WPA2-Enterprise连接。访客可使用'CampusNet-Guest'，需短信验证，有效期为24小时。如遇网络问题，请拨打IT服务台电话分机8888。"
   },
   {
@@ -44,7 +89,15 @@
     "title": "计算机安全实验室安排",
     "min_role": "student",
     "sensitivity": "internal",
-    "keywords": ["security", "lab", "实验", "安全课程", "安排", "schedule", "lab access"],
+    "keywords": [
+      "security",
+      "lab",
+      "实验",
+      "安全课程",
+      "安排",
+      "schedule",
+      "lab access"
+    ],
     "content": "选修《计算机与数据安全》课程的学生可在每周二和周四 14:00 至 18:00 使用安全实验室。实验机器在每次课程结束后自动重置。额外开放时间为每周六 10:00 至 16:00。"
   },
   {
@@ -52,7 +105,15 @@
     "title": "安全课程项目截止日期",
     "min_role": "student",
     "sensitivity": "internal",
-    "keywords": ["project", "deadline", "due", "大作业", "截止", "提交", "report"],
+    "keywords": [
+      "project",
+      "deadline",
+      "due",
+      "大作业",
+      "截止",
+      "提交",
+      "report"
+    ],
     "content": "小组项目截止日期为2026年6月18日（星期四）。预期交付物包括书面报告、演示幻灯片、口头展示和一个可运行的演示系统。迟交每天扣除5%的分数，最多可迟交3天，超过3天后不再接受提交。"
   },
   {
@@ -60,7 +121,16 @@
     "title": "计算机与数据安全课程大纲",
     "min_role": "student",
     "sensitivity": "internal",
-    "keywords": ["syllabus", "course", "课程", "大纲", "教材", "textbook", "考试", "exam"],
+    "keywords": [
+      "syllabus",
+      "course",
+      "课程",
+      "大纲",
+      "教材",
+      "textbook",
+      "考试",
+      "exam"
+    ],
     "content": "本课程涵盖：密码学基础、网络安全、访问控制、安全软件开发、AI/LLM安全以及隐私保护。教材为Goodrich与Tamassia合著的《计算机安全导论》。成绩评定：作业20%，期中考试30%，期末项目40%，课堂参与10%。"
   },
   {
@@ -68,7 +138,15 @@
     "title": "网络安全学生社团",
     "min_role": "student",
     "sensitivity": "internal",
-    "keywords": ["club", "cybersecurity", "CTF", "社团", "安全竞赛", "hackathon", "competition"],
+    "keywords": [
+      "club",
+      "cybersecurity",
+      "CTF",
+      "社团",
+      "安全竞赛",
+      "hackathon",
+      "competition"
+    ],
     "content": "网络安全社团每周五18:00在F楼302室聚会。活动包括CTF竞赛、行业专家特邀讲座，以及渗透测试、逆向工程和取证分析的动手实践工作坊。新成员可在每学期初加入。"
   },
   {
@@ -76,7 +154,15 @@
     "title": "教师评分标准",
     "min_role": "teacher",
     "sensitivity": "restricted",
-    "keywords": ["rubric", "grading", "score", "评分", "成绩", "assessment", "evaluation"],
+    "keywords": [
+      "rubric",
+      "grading",
+      "score",
+      "评分",
+      "成绩",
+      "assessment",
+      "evaluation"
+    ],
     "content": "教师评估期末项目采用五个加权类别：文献调研10%，项目描述10%，实现与演示40%，书面报告20%，口头展示20%。每个类别采用0-100分制。项目部分的最低及格分数为60分。"
   },
   {
@@ -84,7 +170,15 @@
     "title": "学生进度记录",
     "min_role": "teacher",
     "sensitivity": "confidential",
-    "keywords": ["progress", "student", "学生", "进度", "反馈", "成绩", "attendance"],
+    "keywords": [
+      "progress",
+      "student",
+      "学生",
+      "进度",
+      "反馈",
+      "成绩",
+      "attendance"
+    ],
     "content": "进度记录属于机密教学记录，可能包括出勤状态、私下反馈和初步评分。教师应在每两次实验课后记录每位学生的进展情况。这些记录不得向未经授权的学生或外部人员披露。"
   },
   {
@@ -92,7 +186,15 @@
     "title": "期中考试题库",
     "min_role": "teacher",
     "sensitivity": "confidential",
-    "keywords": ["exam", "midterm", "question", "考试", "题目", "题库", "test bank"],
+    "keywords": [
+      "exam",
+      "midterm",
+      "question",
+      "考试",
+      "题目",
+      "题库",
+      "test bank"
+    ],
     "content": "期中考试题库包含60道选择题和15道开放性问题，涵盖密码学、访问控制、SQL注入、XSS防御以及基础渗透测试方法。教师每次考试最多可选择40道选择题和5道开放性问题。"
   },
   {
@@ -100,7 +202,16 @@
     "title": "紧急联系人名单",
     "min_role": "admin",
     "sensitivity": "private",
-    "keywords": ["phone", "email", "contact", "roster", "手机号", "邮箱", "联系方式", "名单"],
+    "keywords": [
+      "phone",
+      "email",
+      "contact",
+      "roster",
+      "手机号",
+      "邮箱",
+      "联系方式",
+      "名单"
+    ],
     "content": "紧急联系人名单：陈爱丽，S20260001，alice.chen@example.edu，+86 13800138000；李鲍勃，S20260002，bob.li@example.edu，+86 13900139000；王查理，S20260003，charlie.wang@example.edu，+86 13700137000。此记录包含个人数据，仅限管理员访问。"
   },
   {
@@ -108,7 +219,16 @@
     "title": "安全审计策略",
     "min_role": "admin",
     "sensitivity": "restricted",
-    "keywords": ["audit", "log", "risk", "审计", "日志", "高风险", "policy", "compliance"],
+    "keywords": [
+      "audit",
+      "log",
+      "risk",
+      "审计",
+      "日志",
+      "高风险",
+      "policy",
+      "compliance"
+    ],
     "content": "所有聊天请求均会记录用户名、角色、匹配的安全策略、操作（允许/阻止/部分允许）、风险等级和时间戳。高风险事件会立即触发管理员仪表盘通知。管理员必须在24小时内审查被阻止的提示注入尝试、隐私相关请求以及重复的未授权访问尝试。审计日志保留180天，可导出为CSV格式以供合规报告使用。"
   },
   {
@@ -116,7 +236,16 @@
     "title": "事件响应流程",
     "min_role": "admin",
     "sensitivity": "confidential",
-    "keywords": ["incident", "breach", "response", "应急", "事件", "响应", "breach", "attack"],
+    "keywords": [
+      "incident",
+      "breach",
+      "response",
+      "应急",
+      "事件",
+      "响应",
+      "breach",
+      "attack"
+    ],
     "content": "发生安全事件时：（1）立即隔离受影响系统，（2）在15分钟内通知首席信息安全官（CISO）和IT主管，（3）保留所有日志和取证证据，（4）记录时间线和影响范围，（5）根据事件类型执行相应的应急预案。事后审查必须在5个工作日内完成，并提交给安全委员会。"
   }
 ]
