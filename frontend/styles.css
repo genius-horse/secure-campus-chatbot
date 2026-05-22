@@ -96,7 +96,7 @@ body::after {
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   min-width: 0;
   position: sticky;
   top: 20px;
@@ -241,7 +241,7 @@ select option {
 }
 
 .panel {
-  padding: 18px;
+  padding: 14px;
 }
 
 .chat-panel {
@@ -262,7 +262,15 @@ select option {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+.panel-header h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .panel-actions {
@@ -520,11 +528,38 @@ h2 {
   background: var(--brand-1);
   opacity: 0.5;
   transition: all var(--transition);
+  flex-shrink: 0;
 }
 
 .sample-list button:hover::before {
   opacity: 1;
   box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* ── Categorized sample panels ───────────────── */
+
+.sample-list {
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.15) transparent;
+  gap: 3px;
+}
+
+.sample-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sample-list::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 2px;
+}
+
+.sample-list button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 /* ── Knowledge items ─────────────────────────── */
