@@ -1,122 +1,122 @@
 [
   {
     "id": "public-library-hours",
-    "title": "Library Opening Hours",
+    "title": "图书馆开放时间",
     "min_role": "public",
     "sensitivity": "public",
     "keywords": ["library", "hours", "图书馆", "开放", "关门", "闭馆", "时间"],
-    "content": "The campus library opens from 08:00 to 22:30 on weekdays and from 09:00 to 21:00 on weekends. During exam weeks, the reading area may extend service until 23:30. The 24-hour self-study room on the first floor is always accessible with a valid campus card."
+    "content": "校园图书馆工作日开放时间为 08:00 至 22:30，周末开放时间为 09:00 至 21:00。考试周期间，阅览区可能延长服务至 23:30。一楼的24小时自习室凭有效校园卡随时可用。"
   },
   {
     "id": "public-password-policy",
-    "title": "Campus Account Password Policy",
+    "title": "校园账户密码策略",
     "min_role": "public",
     "sensitivity": "public",
     "keywords": ["password", "account", "密码", "账号", "登录", "安全", "authentication"],
-    "content": "Campus accounts should use at least 12 characters, avoid repeated passwords, and enable two-factor authentication when available. The IT office never asks users to send passwords by email or chat. Passwords must be changed every 180 days."
+    "content": "校园账户应使用至少12个字符的密码，避免重复使用密码，并在可用时启用双因素认证。IT部门绝不会通过电子邮件或聊天要求用户发送密码。密码必须每180天更换一次。"
   },
   {
     "id": "public-campus-map",
-    "title": "Campus Map and Building Guide",
+    "title": "校园地图与建筑指南",
     "min_role": "public",
     "sensitivity": "public",
     "keywords": ["campus", "map", "building", "校园", "地图", "教学楼", "餐厅", "食堂", "体育馆"],
-    "content": "The main campus includes 8 teaching buildings (Buildings A-H), a central library, 3 dining halls, a sports complex with swimming pool, a student activity center, and the administration tower. Building F hosts all computer science and cybersecurity labs."
+    "content": "主校区包括8栋教学楼（A-H楼）、一座中央图书馆、3个食堂、一个带游泳池的综合体育馆、学生活动中心以及行政大楼。F楼设有所有计算机科学与网络安全实验室。"
   },
   {
     "id": "public-dining-hours",
-    "title": "Dining Hall Schedule",
+    "title": "食堂就餐时间安排",
     "min_role": "public",
     "sensitivity": "public",
     "keywords": ["dining", "food", "cafeteria", "食堂", "餐厅", "吃饭", "dinner", "lunch", "breakfast"],
-    "content": "Campus dining halls operate as follows: Breakfast 07:00-09:00, Lunch 11:30-13:30, Dinner 17:00-19:30. Dining Hall B offers extended hours until 21:00 and has vegetarian and halal options. Campus card or mobile payment is accepted at all locations."
+    "content": "校园食堂营业时间如下：早餐 07:00-09:00，午餐 11:30-13:30，晚餐 17:00-19:30。B食堂延长营业至21:00，并提供素食和清真餐选择。所有食堂均接受校园卡或移动支付。"
   },
   {
     "id": "public-wifi-guide",
-    "title": "Campus Wi-Fi Setup Guide",
+    "title": "校园Wi-Fi设置指南",
     "min_role": "public",
     "sensitivity": "public",
     "keywords": ["wifi", "network", "wireless", "网络", "无线网", "上网", "connect", "SSID"],
-    "content": "The campus Wi-Fi SSID is 'CampusNet-Secure'. Students and staff connect with their campus username and password via WPA2-Enterprise. Visitors may use 'CampusNet-Guest' which requires SMS verification and is valid for 24 hours. For network issues, contact the IT helpdesk at extension 8888."
+    "content": "校园Wi-Fi的SSID为'CampusNet-Secure'。学生和教职工使用校园用户名和密码通过WPA2-Enterprise连接。访客可使用'CampusNet-Guest'，需短信验证，有效期为24小时。如遇网络问题，请拨打IT服务台电话分机8888。"
   },
   {
     "id": "student-security-lab",
-    "title": "Computer Security Lab Schedule",
+    "title": "计算机安全实验室安排",
     "min_role": "student",
     "sensitivity": "internal",
     "keywords": ["security", "lab", "实验", "安全课程", "安排", "schedule", "lab access"],
-    "content": "Students enrolled in Computer and Data Security can access the security lab every Tuesday and Thursday from 14:00 to 18:00. Lab machines are reset automatically after each session. Additional open lab hours are available on Saturdays from 10:00 to 16:00."
+    "content": "选修《计算机与数据安全》课程的学生可在每周二和周四 14:00 至 18:00 使用安全实验室。实验机器在每次课程结束后自动重置。额外开放时间为每周六 10:00 至 16:00。"
   },
   {
     "id": "student-project-deadline",
-    "title": "Security Course Project Deadline",
+    "title": "安全课程项目截止日期",
     "min_role": "student",
     "sensitivity": "internal",
     "keywords": ["project", "deadline", "due", "大作业", "截止", "提交", "report"],
-    "content": "The group project is due on Thursday, 18 June 2026. The expected deliverables include a written report, slides, oral presentation, and a working demonstration system. Late submissions incur a 5% penalty per day for up to 3 days, after which submissions are not accepted."
+    "content": "小组项目截止日期为2026年6月18日（星期四）。预期交付物包括书面报告、演示幻灯片、口头展示和一个可运行的演示系统。迟交每天扣除5%的分数，最多可迟交3天，超过3天后不再接受提交。"
   },
   {
     "id": "student-course-syllabus",
-    "title": "Computer and Data Security Course Syllabus",
+    "title": "计算机与数据安全课程大纲",
     "min_role": "student",
     "sensitivity": "internal",
-    "keywords": ["syllabus", "course", "课程", "大纲", "教材", "textbook", "考试", "exam", "syllabus"],
-    "content": "The course covers: cryptography fundamentals, network security, access control, secure software development, AI/LLM security, and privacy protection. The textbook is 'Introduction to Computer Security' by Goodrich & Tamassia. Grading: assignments 20%, midterm 30%, final project 40%, participation 10%."
+    "keywords": ["syllabus", "course", "课程", "大纲", "教材", "textbook", "考试", "exam"],
+    "content": "本课程涵盖：密码学基础、网络安全、访问控制、安全软件开发、AI/LLM安全以及隐私保护。教材为Goodrich与Tamassia合著的《计算机安全导论》。成绩评定：作业20%，期中考试30%，期末项目40%，课堂参与10%。"
   },
   {
     "id": "student-club-cybersec",
-    "title": "Cybersecurity Student Club",
+    "title": "网络安全学生社团",
     "min_role": "student",
     "sensitivity": "internal",
     "keywords": ["club", "cybersecurity", "CTF", "社团", "安全竞赛", "hackathon", "competition"],
-    "content": "The Cybersecurity Club meets every Friday at 18:00 in Building F Room 302. Activities include CTF competitions, guest lectures from industry professionals, and hands-on workshops on penetration testing, reverse engineering, and forensic analysis. New members can join at the beginning of each semester."
+    "content": "网络安全社团每周五18:00在F楼302室聚会。活动包括CTF竞赛、行业专家特邀讲座，以及渗透测试、逆向工程和取证分析的动手实践工作坊。新成员可在每学期初加入。"
   },
   {
     "id": "teacher-grading-rubric",
-    "title": "Teacher Grading Rubric",
+    "title": "教师评分标准",
     "min_role": "teacher",
     "sensitivity": "restricted",
     "keywords": ["rubric", "grading", "score", "评分", "成绩", "assessment", "evaluation"],
-    "content": "Teachers evaluate the final project with five weighted categories: literature survey 10%, project description 10%, implementation and demonstration 40%, written report 20%, and oral presentation 20%. Each category uses a 0-100 scale. The minimum passing score for the project component is 60."
+    "content": "教师评估期末项目采用五个加权类别：文献调研10%，项目描述10%，实现与演示40%，书面报告20%，口头展示20%。每个类别采用0-100分制。项目部分的最低及格分数为60分。"
   },
   {
     "id": "teacher-student-progress",
-    "title": "Student Progress Notes",
+    "title": "学生进度记录",
     "min_role": "teacher",
     "sensitivity": "confidential",
     "keywords": ["progress", "student", "学生", "进度", "反馈", "成绩", "attendance"],
-    "content": "Progress notes are confidential teaching records. They may include attendance status, private feedback, and preliminary marks. Teachers should document each student's progress after every two lab sessions. Notes should not be disclosed to unauthorized students or external parties."
+    "content": "进度记录属于机密教学记录，可能包括出勤状态、私下反馈和初步评分。教师应在每两次实验课后记录每位学生的进展情况。这些记录不得向未经授权的学生或外部人员披露。"
   },
   {
     "id": "teacher-exam-bank",
-    "title": "Midterm Exam Question Bank",
+    "title": "期中考试题库",
     "min_role": "teacher",
     "sensitivity": "confidential",
     "keywords": ["exam", "midterm", "question", "考试", "题目", "题库", "test bank"],
-    "content": "The midterm exam question bank contains 60 multiple-choice questions and 15 open-ended questions covering cryptography, access control, SQL injection, XSS defense, and basic penetration testing methodology. Teachers may select up to 40 MC and 5 open-ended questions per exam session."
+    "content": "期中考试题库包含60道选择题和15道开放性问题，涵盖密码学、访问控制、SQL注入、XSS防御以及基础渗透测试方法。教师每次考试最多可选择40道选择题和5道开放性问题。"
   },
   {
     "id": "admin-emergency-contacts",
-    "title": "Emergency Contact Roster",
+    "title": "紧急联系人名单",
     "min_role": "admin",
     "sensitivity": "private",
     "keywords": ["phone", "email", "contact", "roster", "手机号", "邮箱", "联系方式", "名单"],
-    "content": "Emergency contact roster: Alice Chen, S20260001, alice.chen@example.edu, +86 13800138000; Bob Li, S20260002, bob.li@example.edu, +86 13900139000; Charlie Wang, S20260003, charlie.wang@example.edu, +86 13700137000. This record contains personal data and is restricted to administrators."
+    "content": "紧急联系人名单：陈爱丽，S20260001，alice.chen@example.edu，+86 13800138000；李鲍勃，S20260002，bob.li@example.edu，+86 13900139000；王查理，S20260003，charlie.wang@example.edu，+86 13700137000。此记录包含个人数据，仅限管理员访问。"
   },
   {
     "id": "admin-security-audit-policy",
-    "title": "Security Audit Policy",
+    "title": "安全审计策略",
     "min_role": "admin",
     "sensitivity": "restricted",
     "keywords": ["audit", "log", "risk", "审计", "日志", "高风险", "policy", "compliance"],
-    "content": "All chat requests are logged with username, role, matched security policy, action (allowed/blocked/partially_allowed), risk level, and timestamp. High-risk events trigger an immediate notification to the admin dashboard. Administrators must review blocked prompt injection attempts, privacy-related requests, and repeated unauthorized access attempts within 24 hours. Audit logs are retained for 180 days and can be exported as CSV for compliance reporting."
+    "content": "所有聊天请求均会记录用户名、角色、匹配的安全策略、操作（允许/阻止/部分允许）、风险等级和时间戳。高风险事件会立即触发管理员仪表盘通知。管理员必须在24小时内审查被阻止的提示注入尝试、隐私相关请求以及重复的未授权访问尝试。审计日志保留180天，可导出为CSV格式以供合规报告使用。"
   },
   {
     "id": "admin-incident-response",
-    "title": "Incident Response Procedures",
+    "title": "事件响应流程",
     "min_role": "admin",
     "sensitivity": "confidential",
     "keywords": ["incident", "breach", "response", "应急", "事件", "响应", "breach", "attack"],
-    "content": "In case of a security incident: (1) Isolate affected systems immediately, (2) Notify the CISO and IT director within 15 minutes, (3) Preserve all logs and forensic evidence, (4) Document the timeline and impact scope, (5) Execute the appropriate playbook based on incident type. Post-incident review must be completed within 5 business days and presented to the security committee."
+    "content": "发生安全事件时：（1）立即隔离受影响系统，（2）在15分钟内通知首席信息安全官（CISO）和IT主管，（3）保留所有日志和取证证据，（4）记录时间线和影响范围，（5）根据事件类型执行相应的应急预案。事后审查必须在5个工作日内完成，并提交给安全委员会。"
   }
 ]

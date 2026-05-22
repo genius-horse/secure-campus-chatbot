@@ -23,7 +23,7 @@ def _first_match(patterns: list[str], text: str) -> str | None:
 PROMPT_INJECTION_RULES = [
     (
         "override-instructions",
-        "Attempt to override previous instructions",
+        "尝试覆盖之前的指令",
         "high",
         [
             r"\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|rules|policy)\b",
@@ -35,7 +35,7 @@ PROMPT_INJECTION_RULES = [
     ),
     (
         "system-prompt-extraction",
-        "Attempt to reveal hidden system instructions",
+        "尝试获取隐藏的系统指令",
         "high",
         [
             r"\b(system|developer)\s+(prompt|message|instruction)s?\b",
@@ -49,7 +49,7 @@ PROMPT_INJECTION_RULES = [
     ),
     (
         "role-play-bypass",
-        "Role-play or jailbreak bypass",
+        "角色扮演或越狱绕过",
         "medium",
         [
             r"\b(jailbreak|DAN mode|do anything now)\b",
@@ -61,7 +61,7 @@ PROMPT_INJECTION_RULES = [
     ),
     (
         "policy-bypass",
-        "Attempt to bypass security controls",
+        "尝试绕过安全控制",
         "medium",
         [
             r"\bbypass\s+(the\s+)?(policy|filter|guard|security)\b",
@@ -76,7 +76,7 @@ PROMPT_INJECTION_RULES = [
 SENSITIVE_REQUEST_RULES = [
     (
         "credential-request",
-        "Request for credentials or secrets",
+        "请求获取凭据或机密信息",
         "high",
         [
             r"\b(password|passcode|token|secret|api[_ -]?key|private key)\b",
@@ -85,7 +85,7 @@ SENSITIVE_REQUEST_RULES = [
     ),
     (
         "private-record-request",
-        "Request for private personal or academic records",
+        "请求获取私人个人信息或学术记录",
         "high",
         [
             r"\b(all\s+students?|student\s+list|phone|email|grade|GPA|score)\b",
@@ -120,15 +120,22 @@ def detect_sensitive_request(text: str) -> list[PolicyHit]:
     return hits
 
 
+PII_LABELS = {
+    "email": "邮箱地址",
+    "phone": "手机号码",
+    "student_id": "学号",
+}
+
+
 def detect_pii(text: str) -> list[PolicyHit]:
     hits: list[PolicyHit] = []
-    for label, pattern in PII_PATTERNS.items():
+    for key, pattern in PII_PATTERNS.items():
         match = re.search(pattern, text)
         if match:
             hits.append(
                 PolicyHit(
-                    rule_id=f"pii-{label}",
-                    label=f"Detected {label}",
+                    rule_id=f"pii-{key}",
+                    label=f"检测到{PII_LABELS.get(key, key)}",
                     severity="medium",
                     evidence=match.group(0),
                 )

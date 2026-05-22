@@ -109,7 +109,7 @@ class SecureChatHandler(BaseHTTPRequestHandler):
 
     def _send_file(self, path: Path) -> None:
         if not path.exists() or not path.is_file():
-            self._send_json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
+            self._send_json({"error": "未找到"}, HTTPStatus.NOT_FOUND)
             return
         suffix = path.suffix.lower()
         body = path.read_bytes()
@@ -170,7 +170,7 @@ class SecureChatHandler(BaseHTTPRequestHandler):
     def _require_user(self) -> User | None:
         user = self._current_user()
         if user is None:
-            self._send_json({"error": "Authentication required"}, HTTPStatus.UNAUTHORIZED)
+            self._send_json({"error": "需要身份认证"}, HTTPStatus.UNAUTHORIZED)
             return None
         return user
 
@@ -206,7 +206,7 @@ class SecureChatHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             if user.role != "admin":
-                self._send_json({"error": "Admin role required"}, HTTPStatus.FORBIDDEN)
+                self._send_json({"error": "需要管理员权限"}, HTTPStatus.FORBIDDEN)
                 return
             query = parse_qs(parsed.query)
             limit = int(query.get("limit", ["100"])[0])
@@ -218,7 +218,7 @@ class SecureChatHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             if user.role != "admin":
-                self._send_json({"error": "Admin role required"}, HTTPStatus.FORBIDDEN)
+                self._send_json({"error": "需要管理员权限"}, HTTPStatus.FORBIDDEN)
                 return
             self._send_json(audit_metrics())
             return
@@ -228,7 +228,7 @@ class SecureChatHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             if user.role != "admin":
-                self._send_json({"error": "Admin role required"}, HTTPStatus.FORBIDDEN)
+                self._send_json({"error": "需要管理员权限"}, HTTPStatus.FORBIDDEN)
                 return
             query = parse_qs(parsed.query)
             limit = int(query.get("limit", ["500"])[0])
@@ -245,7 +245,7 @@ class SecureChatHandler(BaseHTTPRequestHandler):
 
         requested = (FRONTEND_DIR / path.lstrip("/")).resolve()
         if FRONTEND_DIR.resolve() not in requested.parents and requested != FRONTEND_DIR.resolve():
-            self._send_json({"error": "Invalid path"}, HTTPStatus.BAD_REQUEST)
+            self._send_json({"error": "无效路径"}, HTTPStatus.BAD_REQUEST)
             return
         self._send_file(requested)
 
@@ -256,7 +256,7 @@ class SecureChatHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/login":
             if not _check_rate_limit():
                 self._send_json(
-                    {"error": "Too many login attempts. Please wait and try again."},
+                    {"error": "登录尝试次数过多，请稍后再试。"},
                     HTTPStatus.TOO_MANY_REQUESTS,
                 )
                 return
@@ -264,16 +264,16 @@ class SecureChatHandler(BaseHTTPRequestHandler):
             try:
                 payload = self._read_json()
             except json.JSONDecodeError:
-                self._send_json({"error": "Invalid JSON"}, HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": "无效的JSON格式"}, HTTPStatus.BAD_REQUEST)
                 return
             username = str(payload.get("username", "")).strip()
             password = str(payload.get("password", ""))
             if len(username) > 64 or len(password) > 128:
-                self._send_json({"error": "Invalid username or password"}, HTTPStatus.UNAUTHORIZED)
+                self._send_json({"error": "用户名或密码错误"}, HTTPStatus.UNAUTHORIZED)
                 return
             user = authenticate(username, password)
             if user is None:
-                self._send_json({"error": "Invalid username or password"}, HTTPStatus.UNAUTHORIZED)
+                self._send_json({"error": "用户名或密码错误"}, HTTPStatus.UNAUTHORIZED)
                 return
             token = secrets.token_urlsafe(32)
             with _session_lock:
@@ -296,12 +296,12 @@ class SecureChatHandler(BaseHTTPRequestHandler):
             try:
                 payload = self._read_json()
             except json.JSONDecodeError:
-                self._send_json({"error": "Invalid JSON"}, HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": "无效的JSON格式"}, HTTPStatus.BAD_REQUEST)
                 return
             message = str(payload.get("message", ""))
             if len(message) > MAX_MESSAGE_LENGTH:
                 self._send_json(
-                    {"error": f"Message too long. Maximum {MAX_MESSAGE_LENGTH} characters."},
+                    {"error": f"消息过长，最大允许{MAX_MESSAGE_LENGTH}个字符。"},
                     HTTPStatus.BAD_REQUEST,
                 )
                 return
@@ -313,23 +313,23 @@ class SecureChatHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             if user.role != "admin":
-                self._send_json({"error": "Admin role required"}, HTTPStatus.FORBIDDEN)
+                self._send_json({"error": "需要管理员权限"}, HTTPStatus.FORBIDDEN)
                 return
             self._send_json(run_security_evaluation())
             return
 
-        self._send_json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
+        self._send_json({"error": "未找到"}, HTTPStatus.NOT_FOUND)
 
 
 def main() -> None:
     init_db()
     httpd = ThreadingHTTPServer((HOST, PORT), SecureChatHandler)
-    print(f"Secure Campus Assistant running at http://{HOST}:{PORT}")
-    print("Demo accounts: alice/student123, prof/teacher123, admin/admin123")
+    print(f"安全校园助手运行于 http://{HOST}:{PORT}")
+    print("演示账户：alice/student123, prof/teacher123, admin/admin123")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\nServer stopped.")
+        print("\n服务器已停止。")
         httpd.server_close()
 
 

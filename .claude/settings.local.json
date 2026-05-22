@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python backend/app.py)",
+      "Bash(curl -s http://127.0.0.1:8010/api/config)",
+      "Bash(python -c \"import urllib.request; print\\(urllib.request.urlopen\\('http://127.0.0.1:8010/api/config', timeout=5\\).read\\(\\).decode\\(\\)\\)\")"
+    ]
+  }
+}

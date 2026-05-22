@@ -32,19 +32,19 @@ def _derive_password(password: str, salt: str) -> str:
 
 _ACCOUNTS = {
     "alice": {
-        "display_name": "Alice Chen",
+        "display_name": "陈爱丽",
         "role": "student",
         "salt": "course-demo-student",
         "password_hash": _derive_password("student123", "course-demo-student"),
     },
     "prof": {
-        "display_name": "Prof. Wong",
+        "display_name": "王教授",
         "role": "teacher",
         "salt": "course-demo-teacher",
         "password_hash": _derive_password("teacher123", "course-demo-teacher"),
     },
     "admin": {
-        "display_name": "Security Admin",
+        "display_name": "安全管理员",
         "role": "admin",
         "salt": "course-demo-admin",
         "password_hash": _derive_password("admin123", "course-demo-admin"),
