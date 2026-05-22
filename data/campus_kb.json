@@ -4,48 +4,96 @@
     "title": "Library Opening Hours",
     "min_role": "public",
     "sensitivity": "public",
-    "keywords": ["library", "hours", "图书馆", "开放", "关门", "闭馆"],
-    "content": "The campus library opens from 08:00 to 22:30 on weekdays and from 09:00 to 21:00 on weekends. During exam weeks, the reading area may extend service until 23:30."
+    "keywords": ["library", "hours", "图书馆", "开放", "关门", "闭馆", "时间"],
+    "content": "The campus library opens from 08:00 to 22:30 on weekdays and from 09:00 to 21:00 on weekends. During exam weeks, the reading area may extend service until 23:30. The 24-hour self-study room on the first floor is always accessible with a valid campus card."
   },
   {
     "id": "public-password-policy",
     "title": "Campus Account Password Policy",
     "min_role": "public",
     "sensitivity": "public",
-    "keywords": ["password", "account", "密码", "账号", "登录", "安全"],
-    "content": "Campus accounts should use at least 12 characters, avoid repeated passwords, and enable two-factor authentication when available. The IT office never asks users to send passwords by email or chat."
+    "keywords": ["password", "account", "密码", "账号", "登录", "安全", "authentication"],
+    "content": "Campus accounts should use at least 12 characters, avoid repeated passwords, and enable two-factor authentication when available. The IT office never asks users to send passwords by email or chat. Passwords must be changed every 180 days."
+  },
+  {
+    "id": "public-campus-map",
+    "title": "Campus Map and Building Guide",
+    "min_role": "public",
+    "sensitivity": "public",
+    "keywords": ["campus", "map", "building", "校园", "地图", "教学楼", "餐厅", "食堂", "体育馆"],
+    "content": "The main campus includes 8 teaching buildings (Buildings A-H), a central library, 3 dining halls, a sports complex with swimming pool, a student activity center, and the administration tower. Building F hosts all computer science and cybersecurity labs."
+  },
+  {
+    "id": "public-dining-hours",
+    "title": "Dining Hall Schedule",
+    "min_role": "public",
+    "sensitivity": "public",
+    "keywords": ["dining", "food", "cafeteria", "食堂", "餐厅", "吃饭", "dinner", "lunch", "breakfast"],
+    "content": "Campus dining halls operate as follows: Breakfast 07:00-09:00, Lunch 11:30-13:30, Dinner 17:00-19:30. Dining Hall B offers extended hours until 21:00 and has vegetarian and halal options. Campus card or mobile payment is accepted at all locations."
+  },
+  {
+    "id": "public-wifi-guide",
+    "title": "Campus Wi-Fi Setup Guide",
+    "min_role": "public",
+    "sensitivity": "public",
+    "keywords": ["wifi", "network", "wireless", "网络", "无线网", "上网", "connect", "SSID"],
+    "content": "The campus Wi-Fi SSID is 'CampusNet-Secure'. Students and staff connect with their campus username and password via WPA2-Enterprise. Visitors may use 'CampusNet-Guest' which requires SMS verification and is valid for 24 hours. For network issues, contact the IT helpdesk at extension 8888."
   },
   {
     "id": "student-security-lab",
     "title": "Computer Security Lab Schedule",
     "min_role": "student",
     "sensitivity": "internal",
-    "keywords": ["security", "lab", "实验", "安全课程", "安排", "schedule"],
-    "content": "Students enrolled in Computer and Data Security can access the security lab every Tuesday and Thursday from 14:00 to 18:00. Lab machines are reset automatically after each session."
+    "keywords": ["security", "lab", "实验", "安全课程", "安排", "schedule", "lab access"],
+    "content": "Students enrolled in Computer and Data Security can access the security lab every Tuesday and Thursday from 14:00 to 18:00. Lab machines are reset automatically after each session. Additional open lab hours are available on Saturdays from 10:00 to 16:00."
   },
   {
     "id": "student-project-deadline",
     "title": "Security Course Project Deadline",
     "min_role": "student",
     "sensitivity": "internal",
-    "keywords": ["project", "deadline", "due", "大作业", "截止", "提交"],
-    "content": "The group project is due on Thursday, 18 June 2026. The expected deliverables include a written report, slides, oral presentation, and a working demonstration system."
+    "keywords": ["project", "deadline", "due", "大作业", "截止", "提交", "report"],
+    "content": "The group project is due on Thursday, 18 June 2026. The expected deliverables include a written report, slides, oral presentation, and a working demonstration system. Late submissions incur a 5% penalty per day for up to 3 days, after which submissions are not accepted."
+  },
+  {
+    "id": "student-course-syllabus",
+    "title": "Computer and Data Security Course Syllabus",
+    "min_role": "student",
+    "sensitivity": "internal",
+    "keywords": ["syllabus", "course", "课程", "大纲", "教材", "textbook", "考试", "exam", "syllabus"],
+    "content": "The course covers: cryptography fundamentals, network security, access control, secure software development, AI/LLM security, and privacy protection. The textbook is 'Introduction to Computer Security' by Goodrich & Tamassia. Grading: assignments 20%, midterm 30%, final project 40%, participation 10%."
+  },
+  {
+    "id": "student-club-cybersec",
+    "title": "Cybersecurity Student Club",
+    "min_role": "student",
+    "sensitivity": "internal",
+    "keywords": ["club", "cybersecurity", "CTF", "社团", "安全竞赛", "hackathon", "competition"],
+    "content": "The Cybersecurity Club meets every Friday at 18:00 in Building F Room 302. Activities include CTF competitions, guest lectures from industry professionals, and hands-on workshops on penetration testing, reverse engineering, and forensic analysis. New members can join at the beginning of each semester."
   },
   {
     "id": "teacher-grading-rubric",
     "title": "Teacher Grading Rubric",
     "min_role": "teacher",
     "sensitivity": "restricted",
-    "keywords": ["rubric", "grading", "score", "评分", "成绩", "rubric", "assessment"],
-    "content": "Teachers evaluate the project with five categories: literature survey 10%, project description 10%, implementation and demonstration 20%, written report 10%, and oral presentation 10%."
+    "keywords": ["rubric", "grading", "score", "评分", "成绩", "assessment", "evaluation"],
+    "content": "Teachers evaluate the final project with five weighted categories: literature survey 10%, project description 10%, implementation and demonstration 40%, written report 20%, and oral presentation 20%. Each category uses a 0-100 scale. The minimum passing score for the project component is 60."
   },
   {
     "id": "teacher-student-progress",
     "title": "Student Progress Notes",
     "min_role": "teacher",
     "sensitivity": "confidential",
-    "keywords": ["progress", "student", "学生", "进度", "反馈", "成绩"],
-    "content": "Progress notes are confidential teaching records. They may include attendance status, private feedback, and preliminary marks. They should not be disclosed to unauthorized students."
+    "keywords": ["progress", "student", "学生", "进度", "反馈", "成绩", "attendance"],
+    "content": "Progress notes are confidential teaching records. They may include attendance status, private feedback, and preliminary marks. Teachers should document each student's progress after every two lab sessions. Notes should not be disclosed to unauthorized students or external parties."
+  },
+  {
+    "id": "teacher-exam-bank",
+    "title": "Midterm Exam Question Bank",
+    "min_role": "teacher",
+    "sensitivity": "confidential",
+    "keywords": ["exam", "midterm", "question", "考试", "题目", "题库", "test bank"],
+    "content": "The midterm exam question bank contains 60 multiple-choice questions and 15 open-ended questions covering cryptography, access control, SQL injection, XSS defense, and basic penetration testing methodology. Teachers may select up to 40 MC and 5 open-ended questions per exam session."
   },
   {
     "id": "admin-emergency-contacts",
@@ -53,14 +101,22 @@
     "min_role": "admin",
     "sensitivity": "private",
     "keywords": ["phone", "email", "contact", "roster", "手机号", "邮箱", "联系方式", "名单"],
-    "content": "Emergency contact roster: Alice Chen, S20260001, alice.chen@example.edu, +86 13800138000; Bob Li, S20260002, bob.li@example.edu, +86 13900139000. This record contains personal data and is restricted to administrators."
+    "content": "Emergency contact roster: Alice Chen, S20260001, alice.chen@example.edu, +86 13800138000; Bob Li, S20260002, bob.li@example.edu, +86 13900139000; Charlie Wang, S20260003, charlie.wang@example.edu, +86 13700137000. This record contains personal data and is restricted to administrators."
   },
   {
     "id": "admin-security-audit-policy",
     "title": "Security Audit Policy",
     "min_role": "admin",
     "sensitivity": "restricted",
-    "keywords": ["audit", "log", "risk", "审计", "日志", "高风险"],
-    "content": "High-risk requests should be logged with username, role, matched policy, action, and timestamp. Administrators review blocked prompt injection, privacy requests, and repeated unauthorized access attempts."
+    "keywords": ["audit", "log", "risk", "审计", "日志", "高风险", "policy", "compliance"],
+    "content": "All chat requests are logged with username, role, matched security policy, action (allowed/blocked/partially_allowed), risk level, and timestamp. High-risk events trigger an immediate notification to the admin dashboard. Administrators must review blocked prompt injection attempts, privacy-related requests, and repeated unauthorized access attempts within 24 hours. Audit logs are retained for 180 days and can be exported as CSV for compliance reporting."
+  },
+  {
+    "id": "admin-incident-response",
+    "title": "Incident Response Procedures",
+    "min_role": "admin",
+    "sensitivity": "confidential",
+    "keywords": ["incident", "breach", "response", "应急", "事件", "响应", "breach", "attack"],
+    "content": "In case of a security incident: (1) Isolate affected systems immediately, (2) Notify the CISO and IT director within 15 minutes, (3) Preserve all logs and forensic evidence, (4) Document the timeline and impact scope, (5) Execute the appropriate playbook based on incident type. Post-incident review must be completed within 5 business days and presented to the security committee."
   }
 ]

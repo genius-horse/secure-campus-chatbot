@@ -17,6 +17,8 @@ _LOCK = Lock()
 def init_db(path: Path = DB_PATH) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(path) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS audit_log (
@@ -32,6 +34,12 @@ def init_db(path: Path = DB_PATH) -> None:
                 citations TEXT NOT NULL
             )
             """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_audit_risk ON audit_log(risk)"
         )
         conn.commit()
 

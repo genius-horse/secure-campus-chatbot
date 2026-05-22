@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import asdict
 
 from database import append_audit_log
