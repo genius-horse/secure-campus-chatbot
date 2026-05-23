@@ -6,9 +6,10 @@ pydantic-settings
 python-jose[cryptography]
 passlib[bcrypt]
 python-multipart
-# 可选：向量检索与语义检测（需约2GB空间）
-# sentence-transformers
 numpy
 pytest
 httpx
 slowapi
+# 可选：文件上传解析
+PyPDF2>=3.0.0
+python-docx>=1.0.0

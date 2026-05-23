@@ -30,6 +30,14 @@ export interface ChatResponse {
   llm_error: string | null;
   history_message_count: number;
   history_cleared?: boolean;
+  session_id?: string;
+  web_citations?: WebCitation[];
+}
+
+export interface WebCitation {
+  title: string;
+  url: string;
+  snippet: string;
 }
 
 export interface AuditLog {
@@ -58,6 +66,15 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   meta?: ChatResponse;
+}
+
+export interface Session {
+  id: string;
+  name: string;
+  message_count: number;
+  created_at: number;
+  updated_at: number;
+  is_active: boolean;
 }
 
 export interface ToastItem {

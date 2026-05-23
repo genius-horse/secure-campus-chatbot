@@ -113,18 +113,19 @@ def hybrid_search(
     return allowed_hits, denied_hits
 
 
-def get_visible_knowledge(db: Session, user_role: str) -> list[dict]:
+def get_visible_knowledge(db: Session, user_role: str, include_content: bool = False) -> list[dict]:
     docs = db.query(KnowledgeDoc).all()
     visible = []
     for doc in docs:
         if ROLE_ORDER.get(user_role, -1) >= ROLE_ORDER.get(doc.min_role, 999):
-            visible.append(
-                {
-                    "id": doc.id,
-                    "title": doc.title,
-                    "min_role": doc.min_role,
-                    "sensitivity": doc.sensitivity,
-                    "keywords": doc.keywords,
-                }
-            )
+            item = {
+                "id": doc.id,
+                "title": doc.title,
+                "min_role": doc.min_role,
+                "sensitivity": doc.sensitivity,
+                "keywords": doc.keywords,
+            }
+            if include_content:
+                item["content"] = doc.content
+            visible.append(item)
     return visible

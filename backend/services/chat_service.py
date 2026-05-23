@@ -9,6 +9,7 @@ from core.security_rules import redact_pii
 from services.llm_service import generate_with_llm, LLMProviderError
 from services.audit_service import append_audit_log
 from services.auth_service import role_allows
+from services.web_search import web_search, format_web_results, is_configured as web_search_configured
 
 
 SYSTEM_POLICY = (
@@ -78,10 +79,31 @@ def _answer_with_optional_llm(
     message: str,
     allowed_hits: list[RetrievalHit],
     history: list[dict] | None = None,
-) -> tuple[str, str, str | None]:
+    web_enabled: bool = False,
+) -> tuple[str, str, str | None, list[dict]]:
     local_answer = _build_answer(message, allowed_hits)
+    web_citations: list[dict] = []
+
+    # Try web search if enabled and local results are weak
+    if web_enabled and web_search_configured() and len(allowed_hits) < 2:
+        web_results = web_search(message)
+        if web_results:
+            web_citations = [{"title": r["title"], "url": r["url"], "snippet": r["snippet"][:200]} for r in web_results]
+            # Augment context with web results
+            web_context = format_web_results(web_results)
+            # Add as a virtual context block
+            allowed_hits = list(allowed_hits)  # make mutable copy
+            # Append web results as additional context for LLM
+            from services.retrieval_service import RetrievalHit
+            from models.knowledge import KnowledgeDoc
+            web_doc = KnowledgeDoc(
+                id="web-search", title="网络搜索结果", min_role="public",
+                sensitivity="public", keywords=[], content=web_context,
+            )
+            allowed_hits.append(RetrievalHit(doc=web_doc, score=0.5, allowed=True))
+
     if not allowed_hits:
-        return local_answer, "local", None
+        return local_answer, "local", None, web_citations
 
     try:
         llm_answer = generate_with_llm(
@@ -91,12 +113,12 @@ def _answer_with_optional_llm(
             history=history,
         )
     except LLMProviderError as exc:
-        return local_answer, "local_fallback", str(exc)
+        return local_answer, "local_fallback", str(exc), web_citations
 
     if llm_answer is None:
-        return local_answer, "local", None
+        return local_answer, "local", None, web_citations
 
-    return llm_answer, "llm_api", None
+    return llm_answer, "llm_api", None, web_citations
 
 
 def respond(
@@ -105,6 +127,7 @@ def respond(
     message: str,
     history: list[dict] | None = None,
     client_ip: str | None = None,
+    web_enabled: bool = False,
 ) -> dict:
     normalized = message.strip()
     if not normalized:
@@ -119,6 +142,7 @@ def respond(
             "generation_mode": "local",
             "llm_error": None,
             "history_message_count": 0,
+            "web_citations": [],
         }
 
     # Security analysis
@@ -135,6 +159,7 @@ def respond(
     answer = ""
     generation_mode = "local"
     llm_error = None
+    web_citations: list[dict] = []
 
     injection_hits = [h for h in policy_hits if h.rule_id.startswith(("override-", "system-prompt-", "semantic-prompt_injection", "cumulative-prompt_injection"))]
     sensitive_hits = [h for h in policy_hits if h.rule_id.startswith(("credential-", "private-record-", "semantic-sensitive_request", "cumulative-sensitive_request"))]
@@ -153,8 +178,8 @@ def respond(
         action = "blocked"
         answer = _blocked_response("最佳匹配的记录需要更高的角色权限")
     else:
-        answer, generation_mode, llm_error = _answer_with_optional_llm(
-            user, normalized, allowed_hits, history
+        answer, generation_mode, llm_error, web_citations = _answer_with_optional_llm(
+            user, normalized, allowed_hits, history, web_enabled
         )
         if denied_hits:
             action = "partially_allowed"
@@ -193,4 +218,143 @@ def respond(
         "generation_mode": generation_mode,
         "llm_error": llm_error,
         "history_message_count": len(history) if history else 0,
+        "web_citations": web_citations,
     }
+
+
+def respond_stream(
+    db: Session,
+    user: User,
+    message: str,
+    history: list[dict] | None = None,
+    client_ip: str | None = None,
+    web_enabled: bool = False,
+):
+    """流式响应生成器。yield SSE event dicts."""
+    import json
+    from services.llm_service import stream_llm_response, LLMProviderError
+
+    normalized = message.strip()
+    if not normalized:
+        yield {"type": "meta", "action": "blocked", "risk": "low"}
+        yield {"type": "token", "token": "请输入问题。"}
+        yield {"type": "done", "action": "blocked", "risk": "low", "answer": "请输入问题。"}
+        return
+
+    # Security analysis
+    sec_report = analyze_security(normalized, history)
+    policy_hits = sec_report.hits
+
+    # Retrieval
+    allowed_hits, denied_hits = hybrid_search(db, normalized, user.role)
+    citations = [_citation(hit) for hit in allowed_hits]
+    denied_citations = [_citation(hit) for hit in denied_hits]
+
+    # Web search augmentation for streaming
+    web_citations: list[dict] = []
+    if web_enabled and web_search_configured() and len(allowed_hits) < 2:
+        web_results = web_search(normalized)
+        if web_results:
+            web_citations = [{"title": r["title"], "url": r["url"], "snippet": r["snippet"][:200]} for r in web_results]
+            web_context = format_web_results(web_results)
+            from models.knowledge import KnowledgeDoc
+            web_doc = KnowledgeDoc(
+                id="web-search", title="网络搜索结果", min_role="public",
+                sensitivity="public", keywords=[], content=web_context,
+            )
+            allowed_hits = list(allowed_hits)
+            allowed_hits.append(RetrievalHit(doc=web_doc, score=0.5, allowed=True))
+
+    # Decision
+    action = "allowed"
+    generation_mode = "local"
+    llm_error = None
+
+    injection_hits = [h for h in policy_hits if h.rule_id.startswith(("override-", "system-prompt-", "semantic-prompt_injection", "cumulative-prompt_injection"))]
+    sensitive_hits = [h for h in policy_hits if h.rule_id.startswith(("credential-", "private-record-", "semantic-sensitive_request", "cumulative-sensitive_request"))]
+    social_hits = [h for h in policy_hits if h.rule_id.startswith(("impersonate-", "urgency-", "semantic-social_engineering", "cumulative-social_engineering"))]
+
+    if injection_hits:
+        action = "blocked"
+        answer = _blocked_response("检测到提示注入或隐藏指令提取")
+        yield {"type": "meta", "action": action, "risk": "high", "citations": citations, "denied_citations": denied_citations}
+        yield {"type": "token", "token": answer}
+        yield {"type": "done", "action": action, "risk": "high", "answer": answer}
+        return
+    elif sensitive_hits and user.role != "admin":
+        action = "blocked"
+        answer = _blocked_response("请求要求获取私人或受限数据但权限不足")
+        yield {"type": "meta", "action": action, "risk": "high", "citations": citations, "denied_citations": denied_citations}
+        yield {"type": "token", "token": answer}
+        yield {"type": "done", "action": action, "risk": "high", "answer": answer}
+        return
+    elif social_hits:
+        action = "blocked"
+        answer = _blocked_response("检测到社会工程或身份冒充尝试")
+        yield {"type": "meta", "action": action, "risk": "high", "citations": citations, "denied_citations": denied_citations}
+        yield {"type": "token", "token": answer}
+        yield {"type": "done", "action": action, "risk": "high", "answer": answer}
+        return
+    elif denied_hits and not allowed_hits:
+        action = "blocked"
+        answer = _blocked_response("最佳匹配的记录需要更高的角色权限")
+        yield {"type": "meta", "action": action, "risk": "medium", "citations": citations, "denied_citations": denied_citations}
+        yield {"type": "token", "token": answer}
+        yield {"type": "done", "action": action, "risk": "medium", "answer": answer}
+        return
+
+    # Try streaming LLM
+    risk = sec_report.risk_level
+    if risk == "none":
+        risk = "low"
+
+    yield {"type": "meta", "action": action, "risk": risk, "citations": citations, "denied_citations": denied_citations, "web_citations": web_citations}
+
+    full_answer = ""
+    try:
+        stream = stream_llm_response(
+            user_role=user.role,
+            question=normalized,
+            context_blocks=_context_blocks(allowed_hits),
+            history=history,
+        )
+        first = next(stream, None)
+        if first is None:
+            # LLM not configured, use local
+            generation_mode = "local"
+            answer = _build_answer(normalized, allowed_hits)
+            yield {"type": "token", "token": answer}
+            full_answer = answer
+        else:
+            generation_mode = "llm_api"
+            yield {"type": "token", "token": first}
+            full_answer = first
+            for token in stream:
+                yield {"type": "token", "token": token}
+                full_answer += token
+    except LLMProviderError as exc:
+        llm_error = str(exc)
+        generation_mode = "local_fallback"
+        answer = _build_answer(normalized, allowed_hits)
+        yield {"type": "token", "token": answer}
+        full_answer = answer
+
+    if denied_hits:
+        action = "partially_allowed"
+        note = "\n\n部分匹配记录因需要更高角色权限而未予显示。助手仅返回了您账户有权访问的信息。"
+        yield {"type": "token", "token": note}
+        full_answer += note
+
+    safe_policy_hits = [_hit_dict(hit) for hit in policy_hits]
+    audit_id = append_audit_log(
+        db, username=user.username, role=user.role,
+        action=action, risk=risk,
+        message=sec_report.redacted_message, response=full_answer,
+        policy_hits=safe_policy_hits, citations=citations + denied_citations,
+        generation_mode=generation_mode, client_ip=client_ip,
+    )
+
+    yield {"type": "done", "action": action, "risk": risk, "answer": full_answer,
+           "policy_hits": safe_policy_hits, "citations": citations, "denied_citations": denied_citations,
+           "web_citations": web_citations,
+           "audit_id": audit_id, "generation_mode": generation_mode, "llm_error": llm_error}
