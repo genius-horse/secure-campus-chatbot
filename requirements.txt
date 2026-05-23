@@ -1,2 +1,14 @@
-# No external dependency is required.
-# Runtime: Python 3.10+
+fastapi==0.111.*
+uvicorn[standard]
+sqlalchemy>=2.0
+pydantic>=2.0
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+# 可选：向量检索与语义检测（需约2GB空间）
+# sentence-transformers
+numpy
+pytest
+httpx
+slowapi
