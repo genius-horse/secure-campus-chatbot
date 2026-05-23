@@ -1,19 +1,14 @@
-from __future__ import annotations
-
 from dataclasses import asdict
 
-from database import append_audit_log
-from llm_provider import LLMProviderError, generate_with_llm
-from retrieval import RetrievalHit, search
-from security import (
-    PolicyHit,
-    detect_pii,
-    detect_prompt_injection,
-    detect_sensitive_request,
-    highest_risk,
-    redact_pii,
-)
-from users import User
+from sqlalchemy.orm import Session
+
+from models.user import User
+from services.security_service import analyze_security, SecurityReport
+from services.retrieval_service import RetrievalHit, hybrid_search
+from core.security_rules import redact_pii
+from services.llm_service import generate_with_llm, LLMProviderError
+from services.audit_service import append_audit_log
+from services.auth_service import role_allows
 
 
 SYSTEM_POLICY = (
@@ -22,7 +17,7 @@ SYSTEM_POLICY = (
 )
 
 
-def _hit_dict(hit: PolicyHit) -> dict:
+def _hit_dict(hit) -> dict:
     data = asdict(hit)
     data["evidence"] = redact_pii(data["evidence"])
     return data
@@ -104,7 +99,13 @@ def _answer_with_optional_llm(
     return llm_answer, "llm_api", None
 
 
-def respond(user: User, message: str, history: list[dict] | None = None) -> dict:
+def respond(
+    db: Session,
+    user: User,
+    message: str,
+    history: list[dict] | None = None,
+    client_ip: str | None = None,
+) -> dict:
     normalized = message.strip()
     if not normalized:
         return {
@@ -113,35 +114,31 @@ def respond(user: User, message: str, history: list[dict] | None = None) -> dict
             "answer": "请输入问题。",
             "policy_hits": [],
             "citations": [],
+            "denied_citations": [],
             "audit_id": None,
             "generation_mode": "local",
             "llm_error": None,
             "history_message_count": 0,
         }
 
-    injection_hits = detect_prompt_injection(normalized)
-    sensitive_hits = detect_sensitive_request(normalized)
-    input_pii_hits = detect_pii(normalized)
-    policy_hits = injection_hits + sensitive_hits + input_pii_hits
+    # Security analysis
+    sec_report = analyze_security(normalized, history)
+    policy_hits = sec_report.hits
 
-    # Multi-turn threat detection: check if user is probing across messages
-    if history:
-        prev_user_msgs = [h["content"] for h in history if h.get("role") == "user"]
-        if len(prev_user_msgs) >= 2:
-            combined_recent = " | ".join(prev_user_msgs[-3:] + [normalized])
-            cumulative_injection = detect_prompt_injection(combined_recent)
-            for hit in cumulative_injection:
-                if hit.rule_id not in {h.rule_id for h in policy_hits}:
-                    policy_hits.append(hit)
-
-    allowed_hits, denied_hits = search(normalized, user.role)
+    # Retrieval
+    allowed_hits, denied_hits = hybrid_search(db, normalized, user.role)
     citations = [_citation(hit) for hit in allowed_hits]
     denied_citations = [_citation(hit) for hit in denied_hits]
 
+    # Decision
     action = "allowed"
     answer = ""
     generation_mode = "local"
     llm_error = None
+
+    injection_hits = [h for h in policy_hits if h.rule_id.startswith(("override-", "system-prompt-", "semantic-prompt_injection", "cumulative-prompt_injection"))]
+    sensitive_hits = [h for h in policy_hits if h.rule_id.startswith(("credential-", "private-record-", "semantic-sensitive_request", "cumulative-sensitive_request"))]
+    social_hits = [h for h in policy_hits if h.rule_id.startswith(("impersonate-", "urgency-", "semantic-social_engineering", "cumulative-social_engineering"))]
 
     if injection_hits:
         action = "blocked"
@@ -149,6 +146,9 @@ def respond(user: User, message: str, history: list[dict] | None = None) -> dict
     elif sensitive_hits and user.role != "admin":
         action = "blocked"
         answer = _blocked_response("请求要求获取私人或受限数据但权限不足")
+    elif social_hits:
+        action = "blocked"
+        answer = _blocked_response("检测到社会工程或身份冒充尝试")
     elif denied_hits and not allowed_hits:
         action = "blocked"
         answer = _blocked_response("最佳匹配的记录需要更高的角色权限")
@@ -163,20 +163,23 @@ def respond(user: User, message: str, history: list[dict] | None = None) -> dict
                 "助手仅返回了您账户有权访问的信息。"
             )
 
-    risk = highest_risk(policy_hits)
+    risk = sec_report.risk_level
     if action in {"blocked", "partially_allowed"} and risk == "none":
         risk = "medium"
 
     safe_policy_hits = [_hit_dict(hit) for hit in policy_hits]
     audit_id = append_audit_log(
+        db,
         username=user.username,
         role=user.role,
         action=action,
         risk=risk,
-        message=redact_pii(normalized),
+        message=sec_report.redacted_message,
         response=answer,
         policy_hits=safe_policy_hits,
         citations=citations + denied_citations,
+        generation_mode=generation_mode,
+        client_ip=client_ip,
     )
 
     return {

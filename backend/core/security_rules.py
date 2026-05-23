@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass
 
@@ -31,6 +29,8 @@ PROMPT_INJECTION_RULES = [
             r"忽略.*(规则|指令|限制|策略)",
             r"不用遵守.*(规则|指令|限制|策略)",
             r"覆盖.*(规则|指令|限制|策略)",
+            r"忘记.*(规则|指令|限制|策略)",
+            r"解除.*(规则|指令|限制|策略)",
         ],
     ),
     (
@@ -45,6 +45,7 @@ PROMPT_INJECTION_RULES = [
             r"隐藏(规则|指令|策略)",
             r"开发者消息",
             r"把.*(规则|指令|策略).*打印",
+            r"输出.*(规则|指令|策略)",
         ],
     ),
     (
@@ -68,6 +69,7 @@ PROMPT_INJECTION_RULES = [
             r"\bdisable\s+(the\s+)?(policy|filter|guard|security)\b",
             r"绕过.*(安全|过滤|权限|策略)",
             r"关闭.*(安全|过滤|权限|策略)",
+            r"取消.*(安全|过滤|权限|策略)",
         ],
     ),
 ]
@@ -90,6 +92,86 @@ SENSITIVE_REQUEST_RULES = [
         [
             r"\b(all\s+students?|student\s+list|phone|email|grade|GPA|score)\b",
             r"(所有学生|学生名单|手机号|邮箱|联系方式|成绩|绩点|分数)",
+            r"(紧急联系人|个人隐私|身份信息)",
+        ],
+    ),
+    (
+        "exam-leak-request",
+        "请求获取考试相关内容",
+        "high",
+        [
+            r"(考试题库|期中题目|期末题目|试题|答案|泄题)",
+            r"\b(exam\s+bank|test\s+bank|answer\s+key)\b",
+        ],
+    ),
+]
+
+
+SOCIAL_ENGINEERING_RULES = [
+    (
+        "impersonate-it",
+        "冒充IT部门",
+        "medium",
+        [
+            r"我是IT部门",
+            r"IT部门.*验证.*系统",
+            r"技术支持.*需要.*配置",
+            r"系统维护.*需要.*(信息|数据)",
+        ],
+    ),
+    (
+        "impersonate-teacher",
+        "冒充教师",
+        "medium",
+        [
+            r"我是.*教授",
+            r"我是.*老师",
+            r"我的账号.*问题.*数据",
+            r"(教师|教授).*需要.*查看",
+        ],
+    ),
+    (
+        "impersonate-admin",
+        "冒充管理员",
+        "medium",
+        [
+            r"我是.*管理员",
+            r"新来的管理员",
+            r"管理.*权限.*(查看|导出)",
+        ],
+    ),
+    (
+        "urgency-pressure",
+        "紧急施压",
+        "medium",
+        [
+            r"紧急.*安全事件",
+            r"立即.*关闭.*过滤",
+            r"马上.*导出.*日志",
+            r"马上.*关闭.*安全",
+        ],
+    ),
+]
+
+
+ENCODING_BYPASS_RULES = [
+    (
+        "base64-bypass",
+        "Base64编码绕过尝试",
+        "medium",
+        [
+            r"base64.*编码.*输出",
+            r"用base64.*(规则|策略|提示)",
+            r"base64.*(系统|隐藏)",
+        ],
+    ),
+    (
+        "translation-bypass",
+        "翻译/转写绕过",
+        "low",
+        [
+            r"用英文.*(规则|策略)",
+            r"翻译成.*再.*(规则|策略)",
         ],
     ),
 ]
@@ -99,6 +181,12 @@ PII_PATTERNS = {
     "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
     "phone": r"(?<!\d)(?:\+?86[-\s]?)?1[3-9]\d{9}(?!\d)",
     "student_id": r"\bS\d{8,12}\b",
+}
+
+PII_LABELS = {
+    "email": "邮箱地址",
+    "phone": "手机号码",
+    "student_id": "学号",
 }
 
 
@@ -120,11 +208,22 @@ def detect_sensitive_request(text: str) -> list[PolicyHit]:
     return hits
 
 
-PII_LABELS = {
-    "email": "邮箱地址",
-    "phone": "手机号码",
-    "student_id": "学号",
-}
+def detect_social_engineering(text: str) -> list[PolicyHit]:
+    hits: list[PolicyHit] = []
+    for rule_id, label, severity, patterns in SOCIAL_ENGINEERING_RULES:
+        evidence = _first_match(patterns, text)
+        if evidence:
+            hits.append(PolicyHit(rule_id, label, severity, evidence))
+    return hits
+
+
+def detect_encoding_bypass(text: str) -> list[PolicyHit]:
+    hits: list[PolicyHit] = []
+    for rule_id, label, severity, patterns in ENCODING_BYPASS_RULES:
+        evidence = _first_match(patterns, text)
+        if evidence:
+            hits.append(PolicyHit(rule_id, label, severity, evidence))
+    return hits
 
 
 def detect_pii(text: str) -> list[PolicyHit]:

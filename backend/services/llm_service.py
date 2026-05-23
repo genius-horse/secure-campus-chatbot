@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import os
 import urllib.error
@@ -82,9 +80,8 @@ def generate_with_llm(
         },
     ]
 
-    # Include conversation history for multi-turn context
     if history:
-        for h in history[-10:]:  # Last 10 messages max
+        for h in history[-10:]:
             messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
 
     messages.append(
