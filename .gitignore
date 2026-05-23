@@ -1,5 +1,10 @@
 __pycache__/
 *.pyc
 data/audit.sqlite3
+data/app.db
+data/app.db-shm
+data/app.db-wal
 .env
 .DS_Store
+frontend/node_modules/
+frontend/dist/
