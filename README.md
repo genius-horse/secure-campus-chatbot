@@ -1,32 +1,59 @@
 # 安全校园助手
 
-具备提示注入防御、隐私保护与角色感知检索的智能校园助手系统。FastAPI + React 架构。
+具备提示注入防御、隐私保护与角色感知检索的智能校园助手系统。FastAPI + React/Vite 架构。
 
 ## 环境要求
 
-- Python 3.9+
+- Python 3.10+
 - Node.js 18+（仅前端构建需要）
 
 ## 快速启动
 
-```bash
+### Windows PowerShell
+
+```powershell
 # 进入项目目录
-cd secure-campus-chatbot-main
+cd "C:\Users\30205\Desktop\secure-campus-chatbot-main(1)\secure-campus-chatbot-main"
 
 # 安装后端依赖
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
-# 启动后端（开发模式，自动重载）
-cd backend
-uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
+# 安装并构建前端，让 FastAPI 可以直接托管页面
+cd frontend
+npm install
+npm run build
 
-# 前端开发（可选，需要先 cd frontend && npm install）
-cd frontend && npm run dev
+# 启动后端
+cd ..\backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
 ```
 
 启动后浏览器打开 **http://127.0.0.1:8010** 即可使用。
 
 > 后端已在 `/` 挂载前端构建产物（`frontend/dist/`），生产环境无需单独启动前端。
+
+### 前后端分开开发（可选）
+
+打开两个 PowerShell 窗口。
+
+后端：
+
+```powershell
+cd "C:\Users\30205\Desktop\secure-campus-chatbot-main(1)\secure-campus-chatbot-main\backend"
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
+```
+
+前端：
+
+```powershell
+cd "C:\Users\30205\Desktop\secure-campus-chatbot-main(1)\secure-campus-chatbot-main\frontend"
+npm install
+npm run dev
+```
+
+开发模式打开 **http://127.0.0.1:5173**。Vite 会把 `/api` 请求代理到后端 `http://127.0.0.1:8010`。
+
+> `run.sh` 仅适合类 Unix 环境参考；Windows 下请使用上面的 PowerShell 命令。
 
 ## 演示账号
 
@@ -40,7 +67,7 @@ cd frontend && npm run dev
 
 ### 安全防护
 
-- **提示注入检测** — 三层检测（正则 + 语义 + 多轮累积），覆盖中英文注入变体
+- **提示注入检测** — 多层检测（正则 + 可选语义 + 多轮累积），覆盖中英文注入变体
 - **隐私数据保护** — 检测并拦截对私人信息、学术记录的请求，自动脱敏 PII
 - **角色访问控制** — 四级角色（public/student/teacher/admin）细粒度知识访问
 - **多轮对话安全** — 跨轮次检测渐进式越权尝试
@@ -145,7 +172,7 @@ backend/
   services/
     chat_service.py          安全响应管线
     llm_service.py           外部 LLM 接入（含流式）
-    security_service.py      三层安全检测
+    security_service.py      多层安全检测
     retrieval_service.py     混合检索（向量 + 关键词）
     knowledge_service.py     知识库 CRUD
     audit_service.py         审计日志服务
@@ -185,6 +212,6 @@ tests/                       测试用例
 
 - 本地拦截优先于外部 API 调用，被拦截请求不会发送到外部
 - 外部 API 仅接收用户有权访问且经过脱敏的上下文
-- 三层安全检测：正则规则（L1）→ 语义模型（L2）→ 累积检测（L3）
+- 多层安全检测：正则规则（L1）→ 可选语义模型（L2）→ 累积检测（L3）
 - 所有请求均记录审计日志，包含操作、风险、策略命中详情
 - 知识库修改自动同步向量嵌入

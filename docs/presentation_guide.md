@@ -42,7 +42,7 @@
 
 ### 1. 前端界面
 
-文件：`frontend/index.html`, `frontend/styles.css`, `frontend/app.js`
+文件：`frontend/src/App.tsx`, `frontend/src/styles/global.css`, `frontend/src/hooks/*.ts`, `frontend/src/api/client.ts`
 
 功能：
 
@@ -57,7 +57,7 @@
 
 ### 2. 后端 API
 
-文件：`backend/app.py`
+文件：`backend/app/main.py`, `backend/api/*.py`
 
 主要接口：
 
@@ -73,7 +73,7 @@
 
 ### 3. 安全检测模块
 
-文件：`backend/security.py`
+文件：`backend/services/security_service.py`, `backend/core/security_rules.py`
 
 检测内容：
 
@@ -84,9 +84,9 @@
 
 ### 4. 权限检索模块
 
-文件：`backend/retrieval.py`
+文件：`backend/services/retrieval_service.py`, `backend/services/knowledge_service.py`
 
-知识库文件：`data/campus_kb.json`
+初始知识库文件：`data/campus_kb.json`。运行时知识库会写入 SQLite 数据库 `data/app.db`。
 
 每条知识都有：
 
@@ -99,7 +99,7 @@
 
 ### 5. 聊天安全流水线
 
-文件：`backend/chatbot.py`
+文件：`backend/services/chat_service.py`, `backend/api/chat.py`
 
 处理流程：
 
@@ -114,7 +114,7 @@
 
 ### 6. 可选 LLM API 模块
 
-文件：`backend/llm_provider.py`
+文件：`backend/services/llm_service.py`
 
 默认模式：
 
@@ -140,9 +140,9 @@ API 模式：
 
 ### 7. 审计日志
 
-文件：`backend/database.py`
+文件：`backend/services/audit_service.py`, `backend/api/audit.py`, `backend/models/audit.py`
 
-数据库：`data/audit.sqlite3`
+数据库：`data/app.db`
 
 记录内容：
 
@@ -160,9 +160,16 @@ API 模式：
 
 ### Step 1: 启动项目
 
-```bash
-cd /home/data2/chl/secure-campus-chatbot
-python3 backend/app.py
+```powershell
+cd "C:\Users\30205\Desktop\secure-campus-chatbot-main(1)\secure-campus-chatbot-main"
+python -m pip install -r requirements.txt
+
+cd frontend
+npm install
+npm run build
+
+cd ..\backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
 ```
 
 打开：
@@ -283,7 +290,7 @@ User Interface -> Authentication -> Security Gateway -> Role-Aware Retrieval -> 
 - API 模式下仍然坚持本地安全网关先行，降低外部模型泄露敏感数据的风险。
 - 有完整可运行 Demo。
 - 有攻击样例，能现场证明防御效果。
-- 零外部依赖，答辩现场更稳定。
+- 默认本地知识库回答，不依赖外部 LLM API，答辩现场更稳定。
 
 ## 局限性
 
