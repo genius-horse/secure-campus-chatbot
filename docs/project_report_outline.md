@@ -34,13 +34,13 @@ Suggested references:
 
 Main modules:
 
-- Frontend web interface
-- HTTP backend API
+- React/Vite frontend web interface
+- FastAPI backend API
 - Authentication and role management
 - Secure chatbot pipeline
 - Optional LLM API generation module
 - Role-aware retrieval module
-- Security detection module
+- Multi-layer security detection module
 - SQLite audit database
 
 Data flow:
@@ -81,19 +81,23 @@ Defenses:
 
 ## 6. Implementation
 
-The project is implemented with Python standard library only. The backend uses `http.server` and SQLite. The frontend uses HTML, CSS, and JavaScript. The local knowledge base is stored in JSON.
+The project is implemented as a FastAPI + React/Vite web application. The backend provides authentication, chat, knowledge-base management, audit logging, and security-test APIs. The frontend is a React single-page application with role-based demo workflows, chat sessions, knowledge browsing, and an administrator audit dashboard. Runtime data is stored in SQLite, and the initial campus knowledge base is loaded from JSON seed data.
 
 The system can optionally call an OpenAI-compatible chat-completions API. This is disabled by default. When enabled, the API is used only as a response generator after local safety checks and role-based retrieval have already completed.
 
 Important files:
 
-- `backend/app.py`: API routes and static file server
-- `backend/chatbot.py`: secure response pipeline
-- `backend/security.py`: prompt injection and privacy detection
-- `backend/retrieval.py`: role-aware knowledge search
-- `backend/llm_provider.py`: optional external LLM API client
-- `backend/database.py`: audit logging
-- `frontend/index.html`: demo interface
+- `backend/app/main.py`: FastAPI application entry point and static frontend mounting
+- `backend/api/*.py`: HTTP API routes for auth, chat, knowledge, audit, config, and security tests
+- `backend/services/chat_service.py`: secure chatbot response pipeline
+- `backend/services/security_service.py`: regex, optional semantic, and multi-turn security analysis
+- `backend/core/security_rules.py`: prompt injection, sensitive request, social engineering, and PII rules
+- `backend/services/retrieval_service.py`: role-aware hybrid knowledge search
+- `backend/services/llm_service.py`: optional external LLM API client and streaming support
+- `backend/services/audit_service.py`: audit log persistence and metrics
+- `backend/db/session.py`: SQLite database session configuration
+- `frontend/src/App.tsx`: main React demo interface
+- `frontend/src/hooks/*.ts`: frontend state management for auth, chat, theme, and audit views
 
 ## 7. Testing
 
