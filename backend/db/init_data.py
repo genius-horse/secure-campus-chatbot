@@ -70,6 +70,18 @@ def init_knowledge(db: Session) -> None:
     for item in raw_docs:
         existing = db.query(KnowledgeDoc).filter(KnowledgeDoc.id == item["id"]).first()
         if existing:
+            changed = False
+            for field in ("title", "min_role", "sensitivity", "content"):
+                new_value = item.get(field, "public" if field in {"min_role", "sensitivity"} else "")
+                if getattr(existing, field) != new_value:
+                    setattr(existing, field, new_value)
+                    changed = True
+            new_keywords = item.get("keywords", [])
+            if existing.keywords != new_keywords:
+                existing.keywords = new_keywords
+                changed = True
+            if changed:
+                existing.embedding = None
             continue
         doc = KnowledgeDoc(
             id=item["id"],

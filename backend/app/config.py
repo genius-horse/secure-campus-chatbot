@@ -24,10 +24,10 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite:///{ROOT_DIR / 'data' / 'app.db'}"
 
     # LLM
-    llm_mode: str = "local"
+    llm_mode: str = "api"
     llm_api_key: str = ""
-    llm_api_base_url: str = "https://api.openai.com/v1"
-    llm_model: str = ""
+    llm_api_base_url: str = "https://api.deepseek.com"
+    llm_model: str = "deepseek-v4-flash"
     llm_timeout_seconds: float = 20.0
     llm_temperature: float = 0.2
     llm_max_tokens: int = 500

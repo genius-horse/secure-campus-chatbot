@@ -38,7 +38,7 @@ Main modules:
 - HTTP backend API
 - Authentication and role management
 - Secure chatbot pipeline
-- Optional LLM API generation module
+- DeepSeek V4 API generation module with local fallback
 - Role-aware retrieval module
 - Security detection module
 - SQLite audit database
@@ -49,7 +49,7 @@ Data flow:
 2. User sends a message.
 3. Security module checks prompt injection and sensitive data requests.
 4. Retrieval module searches only role-accessible knowledge.
-5. If API mode is enabled, only authorized and redacted context is sent to the external model.
+5. DeepSeek V4 receives only authorized and redacted context.
 6. Chatbot returns an allowed answer or blocks the request.
 7. Audit module records the event.
 
@@ -83,17 +83,17 @@ Defenses:
 
 The project is implemented with Python standard library only. The backend uses `http.server` and SQLite. The frontend uses HTML, CSS, and JavaScript. The local knowledge base is stored in JSON.
 
-The system can optionally call an OpenAI-compatible chat-completions API. This is disabled by default. When enabled, the API is used only as a response generator after local safety checks and role-based retrieval have already completed.
+The system uses DeepSeek V4 as the preferred OpenAI-compatible chat-completions API. If the API key is missing, the network is unavailable, or the provider returns an error, the system automatically falls back to local knowledge-base answers. DeepSeek is used only as a response generator after local safety checks and role-based retrieval have already completed.
 
 Important files:
 
-- `backend/app.py`: API routes and static file server
-- `backend/chatbot.py`: secure response pipeline
-- `backend/security.py`: prompt injection and privacy detection
-- `backend/retrieval.py`: role-aware knowledge search
-- `backend/llm_provider.py`: optional external LLM API client
-- `backend/database.py`: audit logging
-- `frontend/index.html`: demo interface
+- `backend/app/main.py`: FastAPI application entry
+- `backend/services/chat_service.py`: secure response pipeline
+- `backend/services/security_service.py`: prompt injection and privacy detection
+- `backend/services/retrieval_service.py`: role-aware knowledge search
+- `backend/services/llm_service.py`: DeepSeek V4 API client and local fallback
+- `backend/services/audit_service.py`: audit logging and live high-risk query
+- `frontend/src/App.tsx`: React demo interface
 
 ## 7. Testing
 

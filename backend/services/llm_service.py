@@ -30,10 +30,10 @@ class LLMProviderError(RuntimeError):
 
 def get_llm_settings() -> LLMSettings:
     return LLMSettings(
-        mode=os.environ.get("LLM_MODE", "local").strip().lower(),
+        mode=os.environ.get("LLM_MODE", "api").strip().lower(),
         api_key=os.environ.get("LLM_API_KEY", "").strip(),
-        api_base_url=os.environ.get("LLM_API_BASE_URL", "https://api.openai.com/v1").strip(),
-        model=os.environ.get("LLM_MODEL", "").strip(),
+        api_base_url=os.environ.get("LLM_API_BASE_URL", "https://api.deepseek.com").strip(),
+        model=os.environ.get("LLM_MODEL", "deepseek-v4-flash").strip(),
         timeout_seconds=float(os.environ.get("LLM_TIMEOUT_SECONDS", "20")),
         temperature=float(os.environ.get("LLM_TEMPERATURE", "0.2")),
         max_tokens=int(os.environ.get("LLM_MAX_TOKENS", "500")),

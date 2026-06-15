@@ -1,6 +1,8 @@
 # 安全校园助手
 
-具备提示注入防御、隐私保护与角色感知检索的智能校园助手系统。FastAPI + React 架构。
+集成 DeepSeek V4 API、提示注入防御、隐私保护与角色感知检索的智能校园助手系统。FastAPI + React 架构。
+
+本项目面向 **华南理工大学广州国际校区 2024 级数据科学与大数据技术专业** 的课程大作业演示场景。系统优先使用 DeepSeek V4 生成自然语言回答；如果未配置 API key、API 调用失败或网络不可用，则自动回退到本地知识库回答。
 
 ## 环境要求
 
@@ -50,7 +52,7 @@ cd frontend && npm run dev
 
 - **SSE 流式响应** — 逐 token 实时输出，支持中途取消
 - **多轮对话上下文** — 自动维护会话历史，支持追问和连续对话
-- **本地/LLM 双模式** — 默认本地知识库回答，可选接入 DeepSeek 等外部 LLM
+- **DeepSeek V4 优先** — 默认以 DeepSeek V4 作为回答生成器，推荐 `deepseek-v4-flash`
 - **自动回退** — 外部 API 不可用时自动切换本地模式
 - **Web 搜索** — 本地结果不足时自动联网搜索（可选配置博查 API）
 
@@ -76,6 +78,7 @@ cd frontend && npm run dev
 ### 管理员后台
 
 - **审计日志** — 支持按风险等级、操作类型、角色、关键词筛选
+- **实时高风险问答** — 管理员可直接询问“查看今天有哪些高风险提问”，系统从真实审计日志返回摘要
 - **风险指标面板** — 高风险事件、已阻止请求等可视化统计
 - **知识库管理** — 在线新增、编辑、删除知识条目，支持文件上传
 - **安全评测套件** — 一键运行 8 项安全测试用例并生成报告
@@ -97,25 +100,36 @@ cd frontend && npm run dev
 6. 创建新会话，在不同会话间切换验证隔离
 7. 在学生/教师右下角浏览知识库文档
 8. 切回管理员，在审计面板查看被拦截记录
-9. 在知识库管理面板上传文件或新增知识条目
+9. 管理员直接提问：`查看今天有哪些高风险提问`，验证实时审计问答
+10. 在知识库管理面板上传文件或新增知识条目
 
-## 可选：接入外部 LLM API
+## DeepSeek V4 API 配置
 
-默认使用本地知识库生成回答。如需接入外部 LLM：
+项目默认将 DeepSeek V4 作为主要回答生成器。真实 API key 存放在本机 `.env`，不会提交到 GitHub；仓库只保留 `.env.example`。
 
 1. 编辑项目根目录下的 `.env` 文件
 
 ```text
 LLM_MODE=api
-LLM_API_KEY=your_api_key_here
-LLM_API_BASE_URL=https://api.deepseek.com/v1
-LLM_MODEL=deepseek-chat
+LLM_API_KEY=your_deepseek_api_key_here
+LLM_API_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-v4-flash
 LLM_TIMEOUT_SECONDS=20
 LLM_TEMPERATURE=0.2
 LLM_MAX_TOKENS=500
 ```
 
-支持 DeepSeek、OpenAI 等任何兼容 chat-completions 格式的 API。
+推荐模型：
+
+- `deepseek-v4-flash`：答辩演示推荐，速度快、成本低
+- `deepseek-v4-pro`：需要更强生成质量时可切换
+
+安全调用策略：
+
+- 本地安全网关先于 DeepSeek API 执行
+- Prompt Injection、隐私攻击、越权请求会被本地拦截，不发送给 DeepSeek
+- DeepSeek 只接收当前用户有权访问、且经过 PII 脱敏的上下文
+- API key 缺失、网络失败或 API 报错时，系统自动回退本地知识库回答
 
 ### 可选：启用 Web 搜索
 
@@ -184,7 +198,7 @@ tests/                       测试用例
 ## 安全设计要点
 
 - 本地拦截优先于外部 API 调用，被拦截请求不会发送到外部
-- 外部 API 仅接收用户有权访问且经过脱敏的上下文
+- DeepSeek API 仅接收用户有权访问且经过脱敏的上下文
 - 三层安全检测：正则规则（L1）→ 语义模型（L2）→ 累积检测（L3）
 - 所有请求均记录审计日志，包含操作、风险、策略命中详情
 - 知识库修改自动同步向量嵌入

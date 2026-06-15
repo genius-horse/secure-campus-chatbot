@@ -7,7 +7,7 @@ from services.security_service import analyze_security, SecurityReport
 from services.retrieval_service import RetrievalHit, hybrid_search
 from core.security_rules import redact_pii
 from services.llm_service import generate_with_llm, LLMProviderError
-from services.audit_service import append_audit_log
+from services.audit_service import append_audit_log, audit_metrics, list_high_risk_audit_logs
 from services.auth_service import role_allows
 from services.web_search import web_search, format_web_results, is_configured as web_search_configured
 
@@ -38,6 +38,53 @@ def _blocked_response(reason: str) -> str:
         f"请求已被阻止：{reason}。"
         "本助手保护系统指令、私人记录和角色限制数据。"
     )
+
+
+def _is_admin_audit_query(user: User, message: str) -> bool:
+    if user.role != "admin":
+        return False
+    lowered = message.lower()
+    audit_terms = ["audit", "log", "risk", "blocked", "审计", "日志", "高风险", "拦截", "攻击", "提问"]
+    request_terms = ["show", "list", "view", "today", "recent", "查看", "列出", "有哪些", "统计", "最近", "今天"]
+    return any(term in lowered for term in audit_terms) and any(term in lowered for term in request_terms)
+
+
+def _admin_audit_citation() -> dict:
+    return {
+        "id": "live-audit-log",
+        "title": "实时审计日志",
+        "sensitivity": "restricted",
+        "min_role": "admin",
+    }
+
+
+def _build_admin_audit_answer(db: Session, limit: int = 8) -> str:
+    metrics = audit_metrics(db)
+    logs = list_high_risk_audit_logs(db, limit=limit)
+    summary = metrics["summary"]
+    lines = [
+        "实时审计摘要：",
+        f"- 已审计请求总数：{summary.get('total', 0)}",
+        f"- 已阻止请求数：{summary.get('blocked', 0)}",
+        f"- 高风险请求数：{summary.get('high_risk', 0)}",
+    ]
+
+    if not logs:
+        lines.append("\n当前审计日志中没有记录到高风险或被阻止的请求。")
+        return "\n".join(lines)
+
+    lines.append(f"\n最近的高风险或被阻止请求，按时间倒序，最多 {limit} 条：")
+    for item in logs:
+        policy_names = ", ".join(hit.get("rule_id", "unknown") for hit in item.get("policy_hits", [])) or "none"
+        lines.append(
+            "- "
+            f"#{item['id']} | {item['created_at']} | "
+            f"user={item['username']} | role={item['role']} | "
+            f"action={item['action']} | risk={item['risk']} | "
+            f"message={redact_pii(item['message'])} | policies={policy_names}"
+        )
+
+    return "\n".join(lines)
 
 
 def _build_answer(message: str, allowed_hits: list[RetrievalHit]) -> str:
@@ -165,7 +212,13 @@ def respond(
     sensitive_hits = [h for h in policy_hits if h.rule_id.startswith(("credential-", "private-record-", "semantic-sensitive_request", "cumulative-sensitive_request"))]
     social_hits = [h for h in policy_hits if h.rule_id.startswith(("impersonate-", "urgency-", "semantic-social_engineering", "cumulative-social_engineering"))]
 
-    if injection_hits:
+    if _is_admin_audit_query(user, normalized):
+        answer = _build_admin_audit_answer(db)
+        generation_mode = "local_audit"
+        citations = [_admin_audit_citation()]
+        denied_citations = []
+        policy_hits = []
+    elif injection_hits:
         action = "blocked"
         answer = _blocked_response("检测到提示注入或隐藏指令提取")
     elif sensitive_hits and user.role != "admin":
@@ -274,7 +327,44 @@ def respond_stream(
     sensitive_hits = [h for h in policy_hits if h.rule_id.startswith(("credential-", "private-record-", "semantic-sensitive_request", "cumulative-sensitive_request"))]
     social_hits = [h for h in policy_hits if h.rule_id.startswith(("impersonate-", "urgency-", "semantic-social_engineering", "cumulative-social_engineering"))]
 
-    if injection_hits:
+    if _is_admin_audit_query(user, normalized):
+        action = "allowed"
+        risk = "low"
+        generation_mode = "local_audit"
+        answer = _build_admin_audit_answer(db)
+        citations = [_admin_audit_citation()]
+        denied_citations = []
+        safe_policy_hits: list[dict] = []
+        yield {"type": "meta", "action": action, "risk": risk, "citations": citations, "denied_citations": denied_citations}
+        yield {"type": "token", "token": answer}
+        audit_id = append_audit_log(
+            db,
+            username=user.username,
+            role=user.role,
+            action=action,
+            risk=risk,
+            message=sec_report.redacted_message,
+            response=answer,
+            policy_hits=safe_policy_hits,
+            citations=citations,
+            generation_mode=generation_mode,
+            client_ip=client_ip,
+        )
+        yield {
+            "type": "done",
+            "action": action,
+            "risk": risk,
+            "answer": answer,
+            "policy_hits": safe_policy_hits,
+            "citations": citations,
+            "denied_citations": denied_citations,
+            "web_citations": [],
+            "audit_id": audit_id,
+            "generation_mode": generation_mode,
+            "llm_error": None,
+        }
+        return
+    elif injection_hits:
         action = "blocked"
         answer = _blocked_response("检测到提示注入或隐藏指令提取")
         yield {"type": "meta", "action": action, "risk": "high", "citations": citations, "denied_citations": denied_citations}

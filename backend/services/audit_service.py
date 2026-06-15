@@ -96,6 +96,36 @@ def list_audit_logs(
     return logs
 
 
+def list_high_risk_audit_logs(db: Session, limit: int = 10) -> list[dict]:
+    safe_limit = max(1, min(limit, 100))
+    rows = (
+        db.query(AuditLog)
+        .filter((AuditLog.risk == "high") | (AuditLog.action == "blocked"))
+        .order_by(AuditLog.id.desc())
+        .limit(safe_limit)
+        .all()
+    )
+
+    logs = []
+    for row in rows:
+        logs.append(
+            {
+                "id": row.id,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "username": row.username,
+                "role": row.role,
+                "action": row.action,
+                "risk": row.risk,
+                "message": row.message,
+                "response": row.response,
+                "policy_hits": row.policy_hits or [],
+                "citations": row.citations or [],
+                "generation_mode": row.generation_mode,
+            }
+        )
+    return logs
+
+
 def audit_summary(db: Session) -> dict:
     total = db.query(func.count(AuditLog.id)).scalar() or 0
     blocked = (
