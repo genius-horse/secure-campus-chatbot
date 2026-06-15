@@ -7,7 +7,7 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-multipart
 numpy
-pytest
+pytest>=8.2
 httpx
 slowapi
 # 可选：文件上传解析
