@@ -32,5 +32,11 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.2
     llm_max_tokens: int = 500
 
+    # Web search
+    web_search_api_key: str = ""
+    web_search_api_base: str = "https://api.bochaai.com/v1/web-search"
+    web_search_timeout: int = 10
+    web_search_max_results: int = 3
+
 
 settings = Settings()

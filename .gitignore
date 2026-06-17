@@ -5,6 +5,7 @@ data/app.db
 data/app.db-shm
 data/app.db-wal
 .env
+*.log
 .DS_Store
 frontend/node_modules/
 frontend/dist/

@@ -100,7 +100,7 @@ export function useChat(token: string) {
     try {
       const res: ChatResponse = await api('/api/chat', {
         method: 'POST',
-        body: JSON.stringify({ message: text, session_id: activeSessionRef.current }),
+        body: JSON.stringify({ message: text, session_id: activeSessionRef.current, web_enabled: webEnabled }),
       });
       setRisk(res.risk);
       setMessages((prev) => [...prev, { role: 'assistant', content: res.answer, meta: res }]);
